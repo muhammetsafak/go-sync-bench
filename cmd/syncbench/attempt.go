@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -64,10 +65,16 @@ func runRepetition(rawDir, id string, round int, resume bool, run repFunc, valid
 	if err != nil {
 		return 0, err
 	}
-	// A child killed on timeout may have left no record; the evidence is
-	// then the timing line alone.
-	if err := os.Rename(attempt, ev); err != nil && !errors.Is(err, fs.ErrNotExist) {
-		return 0, err
+	// A child killed on timeout may have left no record. A placeholder then
+	// holds the evidence name, so rerun_of never points at a missing file and
+	// a later resume cannot give that name to another record.
+	if err := os.Rename(attempt, ev); err != nil {
+		if !errors.Is(err, fs.ErrNotExist) {
+			return 0, err
+		}
+		if err := os.WriteFile(ev, missingRecord(id, round), 0o644); err != nil {
+			return 0, err
+		}
 	}
 	rerunOf := strings.TrimSuffix(filepath.Base(ev), ".json")
 	if code := run(path, 2, rerunOf); code == exitG2 {
@@ -95,4 +102,17 @@ func evidencePath(rawDir, id string, round int) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("no free evidence name for %s round %d", id, round)
+}
+
+// missingRecord is the placeholder kept as evidence when attempt 1 of a
+// repetition left no record (killed on timeout or died before writing). The
+// timing line of that attempt has the exit code and the wall time.
+func missingRecord(id string, round int) []byte {
+	b, _ := json.Marshal(struct {
+		CellID  string          `json:"cell_id"`
+		Round   int             `json:"round"`
+		Missing string          `json:"missing"`
+		Gates   map[string]bool `json:"gates"`
+	}{id, round, "attempt 1 left no record; see timing", map[string]bool{"valid": false}})
+	return append(b, '\n')
 }

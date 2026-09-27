@@ -57,7 +57,8 @@ for (const f of files) {
   if (!f.endsWith('.json')) continue;
   const rec = readJSON(join(rawDir, f));
   if (/\.invalid(-\d+)?\.json$/.test(f)) {
-    invalid.push({ file: f, cell_id: rec.cell_id, round: rec.round, gates: rec.gates });
+    // A placeholder (`missing`) stands for an attempt that left no record.
+    invalid.push({ file: f, cell_id: rec.cell_id, round: rec.round, gates: rec.gates, missing: rec.missing ?? null });
     continue;
   }
   if (!rec.gates?.valid) {

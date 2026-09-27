@@ -45,6 +45,8 @@ func listDir(t *testing.T, dir string) map[string]string {
 	return m
 }
 
+var placeholder = string(missingRecord("c", 1))
+
 func TestRunRepetition(t *testing.T) {
 	cases := []struct {
 		name    string
@@ -72,7 +74,19 @@ func TestRunRepetition(t *testing.T) {
 		},
 		{
 			name: "no record (timeout) then valid", results: []string{"none", "ok"}, codes: []int{-1, 0}, want: repValid,
-			files: map[string]string{"c.r1.json": "ok"}, rerun: []string{"", "c.r1.invalid"},
+			files: map[string]string{"c.r1.invalid.json": placeholder, "c.r1.json": "ok"},
+			rerun: []string{"", "c.r1.invalid"},
+		},
+		{
+			// rerun_of of the second attempt must keep pointing at the
+			// placeholder after a resume moves that attempt's record away.
+			name: "resume after timeout and invalid rerun keeps the chain",
+			pre:  map[string]string{"c.r1.invalid.json": placeholder, "c.r1.json": "bad"}, resume: true,
+			results: []string{"ok"}, want: repValid,
+			files: map[string]string{
+				"c.r1.invalid.json": placeholder, "c.r1.invalid-2.json": "bad", "c.r1.json": "ok",
+			},
+			rerun: []string{""},
 		},
 		{
 			name: "G2 stops at once", results: []string{"bad"}, codes: []int{exitG2}, want: repG2,
