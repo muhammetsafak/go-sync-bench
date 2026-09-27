@@ -6,20 +6,21 @@ import (
 	"time"
 )
 
-// Labelling thresholds of the fairness attribution rule. They are
-// assumptions of the design and are checked by the smoke run.
+// Thresholds of the fairness attribution rule. They are assumptions of the
+// design and are checked by the smoke run.
 const (
-	BandLow            = 0.8
-	BandHigh           = 1.2
 	SlowShareThreshold = 0.5
 	ParkThresholdNs    = 10_000 // 10 µs: acquire_wait above this counts as "slow"
 	PreemptQuantum     = 10 * time.Millisecond
 )
 
-// Fairness sources.
+// Fairness sources. There is no "scheduler" source: the smoke run did not
+// confirm the 10 ms quantum model, so the harness does not attribute
+// unfairness to the scheduler (user decision 2026-09-27, Faz 02). A cell
+// carries b, the expected quantum Jain and the measured Jain side by side
+// instead, and the reader draws the conclusion.
 const (
 	SourceSync        = "sync"
-	SourceScheduler   = "scheduler"
 	SourceUnexplained = "unexplained"
 )
 
@@ -108,17 +109,20 @@ func ExpectedQuantumJain(bRaw float64) float64 {
 }
 
 // FairnessSource applies the attribution rule of the design. g and p are the
-// cell's goroutine and processor counts, b the clamped quantum bound, s the
-// slow_acquire_share and j the Jain index.
-func FairnessSource(g, p int, b, s, j float64) string {
+// cell's goroutine and processor counts, b the clamped quantum bound and s
+// the slow_acquire_share:
+//
+//   - sync if g ≤ p or b ≥ 1 (the quantum does not bind), or if s ≥ 0.5 (most
+//     acquisitions park, so the unfairness comes from the primitive);
+//   - unexplained otherwise: the cell is left out of cross-model fairness
+//     comparisons and published with b, the expected quantum Jain and the
+//     measured Jain.
+func FairnessSource(g, p int, b, s float64) string {
 	if g <= p || b >= 1 {
 		return SourceSync
 	}
 	if s >= SlowShareThreshold {
 		return SourceSync
-	}
-	if j >= BandLow*b && j <= BandHigh*b {
-		return SourceScheduler
 	}
 	return SourceUnexplained
 }

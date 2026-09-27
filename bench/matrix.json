@@ -22,7 +22,7 @@
         { "scenario": "s3", "impls": ["chan0", "chan1", "chan64", "chan1024", "cond64", "cond1024"], "G": [64], "P": [4], "W": [0] }
       ],
       "cells": [
-        { "scenario": "s1", "impl": "mutex", "G": 256, "P": 1, "W": 0, "note": "label: scheduler expected" },
+        { "scenario": "s1", "impl": "mutex", "G": 256, "P": 1, "W": 0, "note": "label: unexplained expected (b<1, s<0.5)" },
         { "scenario": "s1", "impl": "mutex", "G": 10000, "P": 8, "W": 0, "note": "label: sync expected (high s)" },
         { "scenario": "s1", "impl": "chan_reqresp", "G": 10000, "P": 8, "W": 0, "note": "label: sync expected" },
         { "scenario": "s1", "impl": "atomic", "G": 256, "P": 2, "W": 0, "note": "b'~1.17, expected Jain ~0.906" },

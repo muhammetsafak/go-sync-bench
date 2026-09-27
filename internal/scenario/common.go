@@ -244,6 +244,8 @@ func (g *group) seal() {
 
 // window runs the common timeline: wait for the barrier, open the window,
 // sleep, raise the stop flag. It returns the measured window length.
+// OnWindowStart (runtime/metrics and rusage) runs before the clock starts and
+// OnWindowEnd after it stops, so neither read falls inside the window.
 func window(p *phase, workers int, opt Options, res *Result, onStart, onEnd func()) {
 	deadline := time.Now().Add(DefaultDrainTimeout)
 	for p.ready.Load() < int64(workers) {
@@ -254,11 +256,11 @@ func window(p *phase, workers int, opt Options, res *Result, onStart, onEnd func
 	}
 	res.Ready = int(p.ready.Load())
 	res.BarrierOK = res.Ready == workers
-	t0 := time.Now()
-	close(p.start)
 	if opt.OnWindowStart != nil {
 		opt.OnWindowStart()
 	}
+	t0 := time.Now()
+	close(p.start)
 	if onStart != nil {
 		onStart()
 	}

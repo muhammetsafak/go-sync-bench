@@ -25,8 +25,6 @@ const G6_RATIO = 0.90;
 const G7_SAMPLES = 10000;
 const G8_FACTOR = 4;
 const G9_TAIL = 0.01;
-const BAND_LOW = 0.8;
-const BAND_HIGH = 1.2;
 const SLOW_SHARE = 0.5;
 const REP_BUDGET_S = 5;
 const LOW_CONFIDENCE_SHARE = 0.15;
@@ -58,7 +56,7 @@ const invalid = [];
 for (const f of files) {
   if (!f.endsWith('.json')) continue;
   const rec = readJSON(join(rawDir, f));
-  if (f.endsWith('.invalid.json')) {
+  if (/\.invalid(-\d+)?\.json$/.test(f)) {
     invalid.push({ file: f, cell_id: rec.cell_id, round: rec.round, gates: rec.gates });
     continue;
   }
@@ -106,10 +104,12 @@ function cellID(c) {
   return `${id}-g${c.G}-p${c.P}-w${c.W}`;
 }
 
-function fairnessSource(g, p, b, s, j) {
+// The attribution rule has no "scheduler" source (user decision 2026-09-27,
+// Faz 02): a cell the primitive does not explain is "unexplained" and carries
+// b, the expected quantum Jain and the measured Jain side by side.
+function fairnessSource(g, p, b, s) {
   if (g <= p || b >= 1) return 'sync';
   if (s >= SLOW_SHARE) return 'sync';
-  if (j >= BAND_LOW * b && j <= BAND_HIGH * b) return 'scheduler';
   return 'unexplained';
 }
 
@@ -176,7 +176,7 @@ for (const [id, rs] of [...byCell.entries()].sort()) {
   const s = median(rs.map((r) => r.fairness?.slow_acquire_share));
   const b = r0.fairness?.quantum_bound ?? null;
   const bRaw = r0.fairness?.quantum_bound_raw ?? null;
-  const source = jain !== null && s !== null && b !== null ? fairnessSource(g, r0.P, b, s, jain) : null;
+  const source = jain !== null && s !== null && b !== null ? fairnessSource(g, r0.P, b, s) : null;
   if (source === 'unexplained') flags.push('fairness_unexplained');
 
   const slowByThreshold = {};
@@ -267,14 +267,16 @@ for (const c of cells) {
 const labelChecks = cells
   .filter((c) => c.note?.startsWith('label:'))
   .map((c) => {
-    const want = /scheduler/.test(c.note) ? 'scheduler' : 'sync';
+    const want = /unexplained/.test(c.note) ? 'unexplained' : 'sync';
     return {
       cell_id: c.cell_id,
       expected: want,
       got: c.fairness.fairness_source,
       ok: c.fairness.fairness_source === want,
       jain: c.fairness.jain,
+      expected_quantum_jain: c.fairness.expected_quantum_jain,
       quantum_bound: c.fairness.quantum_bound,
+      quantum_bound_raw: c.fairness.quantum_bound_raw,
       slow_acquire_share: c.fairness.slow_acquire_share,
     };
   });
@@ -297,7 +299,7 @@ const summary = {
   thresholds: {
     G4_throughput_spread: G4_TPUT, G4_p99_spread: G4_P99, G5_drift: G5_DRIFT, G6_ops_ratio: G6_RATIO,
     G7_min_samples: G7_SAMPLES, G8_resolution_factor: G8_FACTOR, G9_window_tail: G9_TAIL,
-    fairness_band: [BAND_LOW, BAND_HIGH], slow_share: SLOW_SHARE, park_threshold_us: 10,
+    slow_share: SLOW_SHARE, park_threshold_us: 10,
   },
   gates: {
     flagged_cells: flaggedCells,
@@ -347,6 +349,8 @@ const cols = [
   ['min_max', (c) => c.fairness.min_max],
   ['zero_op', (c) => c.fairness.zero_op_goroutines],
   ['quantum_bound', (c) => c.fairness.quantum_bound],
+  ['quantum_bound_raw', (c) => c.fairness.quantum_bound_raw],
+  ['expected_quantum_jain', (c) => c.fairness.expected_quantum_jain],
   ['slow_share', (c) => c.fairness.slow_acquire_share],
   ['fairness_source', (c) => c.fairness.fairness_source],
   ['op_p50', (c) => c.latency.op_p50.value],

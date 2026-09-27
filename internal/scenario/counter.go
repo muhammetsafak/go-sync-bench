@@ -177,9 +177,16 @@ func runCounter(spec Spec, opt Options) *Result {
 	}
 
 	clientServer(ph, opt, res, ws, client, owner, closeOwner, onStart, onEnd)
-	total := c.n
-	if spec.Impl == "atomic" {
-		total = c.a.Load()
+	// A stuck drain may leave goroutines still writing the counter and the
+	// owner's tallies: read them only after a complete drain.
+	var total uint64
+	if res.StuckStep == "" {
+		total = c.n
+		if spec.Impl == "atomic" {
+			total = c.a.Load()
+		}
+	} else {
+		applied, appliedWin = 0, 0
 	}
 	return finishCounter(spec, res, ws, total, applied, appliedWin)
 }

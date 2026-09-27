@@ -21,6 +21,9 @@
 #   ./bench/run.sh --smoke                       the smoke set (22 cells x 3 rounds)
 #   STAMP=<stamp> ./bench/run.sh --all --resume  skip repetitions already written
 #
+# Exit codes: 0 done, 1 a container failed, 3 G2 cpuset gate, 7 E2, 8 E1,
+# 9 harness error (a repetition failed G1/G3 twice).
+#
 # Environment: SEED (default: cksum of the stamp), COOL (cool-down seconds;
 # 60 for --all, 5 for --smoke), E1_ENFORCE (1 for --all, 0 for --smoke: the
 # smoke run records the host load but does not wait for it).
@@ -122,8 +125,11 @@ for ((r = 1; r <= ROUNDS; r++)); do
     if [ "$code" -ne 0 ]; then
       log "round $r P=$p exited $code" 2>&1 | tee -a "$RUNLOG"
       status=1
-      # G2 (exit 3) is a configuration error: the run stops.
+      # G2 (exit 3) is a configuration error; exit 9 is a repetition that
+      # failed a hard gate (G1/G3) on both attempts, a harness error. Both
+      # stop the run for the user; --resume re-runs the failed repetition.
       [ "$code" -eq 3 ] && { echo "- stopped: G2 cpuset gate" >> "$RUNMD"; exit 3; }
+      [ "$code" -eq 9 ] && { echo "- stopped: harness error (a repetition failed a hard gate twice, see run.log)" >> "$RUNMD"; exit 9; }
     fi
 
     # E1: fixed cool-down, then wait for a quiet host.

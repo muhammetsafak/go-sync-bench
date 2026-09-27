@@ -61,7 +61,7 @@ func SelfTest() SelfTestResult {
 		r.Failures = append(r.Failures, "layout: "+r.LayoutDetail)
 	}
 	for r.LayoutOK && r.ValidTrials < SelfTestValidTrials {
-		if r.SetupRetries > SelfTestMaxSetupRetry {
+		if r.SetupRetries >= SelfTestMaxSetupRetry {
 			r.SetupUnstable = true
 			break
 		}

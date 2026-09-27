@@ -482,15 +482,11 @@ func fillFairness(rec *Record, spec scenario.Spec, f runFlags) {
 	if rec.Latency.SampleCount > 0 {
 		fr.SlowAcquireShare = f64(rec.Latency.SlowShareByUs["10"])
 	}
-	j := 1.0
-	if rec.Throughput.FairnessJain != nil {
-		j = *rec.Throughput.FairnessJain
-	}
 	s := 0.0
 	if fr.SlowAcquireShare != nil {
 		s = *fr.SlowAcquireShare
 	}
-	fr.Source = measure.FairnessSource(g, p, math.Min(1, raw), s, j)
+	fr.Source = measure.FairnessSource(g, p, math.Min(1, raw), s)
 }
 
 // writeJSON writes v to path atomically (temp file + rename), or to stdout.

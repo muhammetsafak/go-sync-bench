@@ -92,9 +92,11 @@ is `null` with a reason, and the rest of the record is kept.
 | G9 | soft | `window_tail_frac` < 1 % |
 
 A repetition that fails G1 or G3 is kept as `<cell>.r<round>.invalid.json`
-and replaced once, with a new seed and `rerun_of` pointing at it; if the
-replacement fails too, it stays with `gates.valid = false`, the report counts
-it as invalid and the cell is reported with fewer repetitions. Soft gates only flag: `report.mjs` lists the cells and the
+and replaced once, with a new seed and `rerun_of` pointing at it. If the
+replacement fails too, that is a harness error: `round` exits 9 and `run.sh`
+stops, noting it in `RUN.md`. `--resume` keeps an invalid record it finds as
+the next free `<cell>.r<round>.invalid[-N].json` and measures the repetition
+again, so no evidence is overwritten. Soft gates only flag: `report.mjs` lists the cells and the
 re-run candidates (G4, or G5 in two or more repetitions). If more than 15 %
 of the cells fail a soft gate, the report suggests low confidence.
 
@@ -140,10 +142,17 @@ goroutine uneven: in a window of length T with a 10 ms time slice, at most
 `b = P·⌊T/10 ms⌋ / g` of the goroutines can run at all (`g` = G, or G/2
 consumers in `s3`). `fairness_source` is:
 
-- `sync` if g ≤ P or b ≥ 1 (the scheduler is not the bottleneck), or if at
-  least half of the acquisitions waited longer than the park threshold (10 µs);
-- `scheduler` if the measured Jain index is within 0.8-1.2 × b;
-- `unexplained` otherwise — flagged in the report, never silently assigned.
+- `sync` if g ≤ P or b ≥ 1 (the time slice does not bind), or if at least
+  half of the acquisitions waited longer than the park threshold (10 µs);
+- `unexplained` otherwise — flagged in the report, never silently assigned,
+  and left out of fairness comparisons between models.
+
+There is no `scheduler` source. The smoke run did not confirm the 10 ms
+quantum model well enough to attribute a cell to the scheduler, so the
+harness does not. Every cell carries `quantum_bound` (b, and the unclamped
+`quantum_bound_raw`), `expected_quantum_jain` and the measured `jain` side
+by side, in `summary.json` and `cells.csv`; reading them is left to the
+reader.
 
 ## Limits
 

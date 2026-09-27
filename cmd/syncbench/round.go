@@ -23,6 +23,10 @@ const (
 	exitSelfTestUnstable = 6
 )
 
+// exitHarnessError is the exit code of a round that stopped because one
+// repetition failed a hard gate (G1 or G3) on both attempts.
+const exitHarnessError = 9
+
 // repBudget is the wall time a repetition is expected to stay under; longer
 // ones are reported (Faz 01 open item 3).
 const repBudget = 5 * time.Second
@@ -233,21 +237,10 @@ func cmdRound(args []string) int {
 
 	timeout := repTimeout(m)
 	win := m.Windows
+	rawDir := filepath.Join(*outDir, "raw")
 	for i, c := range order {
 		id := c.ID()
-		path := filepath.Join(*outDir, "raw", fmt.Sprintf("%s.r%d.json", id, s.round))
-		if *resume {
-			if _, err := os.Stat(path); err == nil {
-				writeTiming(timing{CellID: id, Round: s.round, Skipped: true, Valid: true})
-				continue
-			}
-		}
-		rerunOf := ""
-		for attempt := 1; attempt <= 2; attempt++ {
-			target := path
-			if attempt == 1 {
-				target = path + ".attempt"
-			}
+		run := func(target string, attempt int, rerunOf string) int {
 			seed := repSeed(s.seed, s.round, id)
 			if attempt == 2 {
 				seed ^= 0xa5a5a5a5a5a5a5a5
@@ -276,28 +269,23 @@ func cmdRound(args []string) int {
 			writeTiming(timing{CellID: id, Round: s.round, Attempt: attempt, WallS: wall.Seconds(),
 				Exit: code, Valid: valid, OverBudg: wall > repBudget})
 			logf("%d/%d %s attempt=%d exit=%d valid=%t wall=%.2fs", i+1, len(order), id, attempt, code, valid, wall.Seconds())
-			if code == exitG2 {
-				logf("G2 cpuset gate failed; stopping the round")
-				return exitG2
-			}
-			if attempt == 1 {
-				if valid {
-					if err := os.Rename(target, path); err != nil {
-						logf("rename: %v", err)
-						return 1
-					}
-					break
-				}
-				// A hard-gate failure: keep the first run as evidence and
-				// replace the repetition as a whole.
-				inv := filepath.Join(*outDir, "raw", fmt.Sprintf("%s.r%d.invalid.json", id, s.round))
-				os.Rename(target, inv)
-				rerunOf = fmt.Sprintf("%s.r%d.invalid", id, s.round)
-				continue
-			}
-			if !valid {
-				logf("%s failed a hard gate twice: harness error", id)
-			}
+			return code
+		}
+		out, err := runRepetition(rawDir, id, s.round, *resume, run, readValid)
+		switch {
+		case err != nil:
+			logf("%s: %v", id, err)
+			return 1
+		case out == repSkipped:
+			writeTiming(timing{CellID: id, Round: s.round, Skipped: true, Valid: true})
+		case out == repG2:
+			logf("G2 cpuset gate failed; stopping the round")
+			return exitG2
+		case out == repHarnessError:
+			// The design's gate policy: a repetition that fails a hard gate
+			// twice is a harness error and the run stops for the user.
+			logf("%s failed a hard gate twice: harness error, stopping the round", id)
+			return exitHarnessError
 		}
 	}
 	return 0

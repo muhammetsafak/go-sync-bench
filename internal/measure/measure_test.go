@@ -102,18 +102,19 @@ func TestQuantumBoundAndExpectedJain(t *testing.T) {
 
 func TestFairnessSource(t *testing.T) {
 	cases := []struct {
-		g, p    int
-		b, s, j float64
-		want    string
+		g, p int
+		b, s float64
+		want string
 	}{
-		{4, 8, 1, 0, 0.1, SourceSync},
-		{10000, 8, 0.12, 0.9, 0.01, SourceSync},
-		{10000, 8, 0.12, 0.1, 0.11, SourceScheduler},
-		{10000, 8, 0.12, 0.1, 0.5, SourceUnexplained},
-		{256, 1, 0.586, 0.0, 0.55, SourceScheduler},
+		{4, 8, 1, 0, SourceSync},          // g ≤ p
+		{256, 2, 1, 0, SourceSync},        // b ≥ 1
+		{10000, 8, 0.12, 0.9, SourceSync}, // most acquisitions park
+		{10000, 8, 0.12, 0.5, SourceSync}, // threshold is inclusive
+		{10000, 8, 0.12, 0.1, SourceUnexplained},
+		{256, 1, 0.586, 0.0, SourceUnexplained}, // formerly "scheduler"
 	}
 	for _, c := range cases {
-		if got := FairnessSource(c.g, c.p, c.b, c.s, c.j); got != c.want {
+		if got := FairnessSource(c.g, c.p, c.b, c.s); got != c.want {
 			t.Errorf("%+v: got %s", c, got)
 		}
 	}
