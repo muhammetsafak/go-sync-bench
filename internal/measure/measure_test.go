@@ -1,8 +1,10 @@
 package measure
 
 import (
+	"encoding/json"
 	"math"
 	"runtime"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -77,6 +79,27 @@ func TestJain(t *testing.T) {
 	s := Summarize([]uint64{4, 0, 2, 10})
 	if s.Min != 0 || s.Max != 10 || s.Median != 3 || s.Zero != 1 || s.MinMax != 0 {
 		t.Fatalf("summary %+v", s)
+	}
+	if s.Jain == nil || math.Abs(*s.Jain-Jain([]uint64{4, 0, 2, 10})) > 1e-12 {
+		t.Fatalf("summary jain %v", s.Jain)
+	}
+}
+
+// A G=1 cell has one goroutine: Jain is undefined and must serialise as null,
+// not fail json.Marshal with "unsupported value: NaN".
+func TestSummarizeSingleGoroutineMarshals(t *testing.T) {
+	for _, xs := range [][]uint64{{42}, {}} {
+		s := Summarize(xs)
+		if s.Jain != nil {
+			t.Fatalf("n=%d: jain %v, want nil", len(xs), *s.Jain)
+		}
+		b, err := json.Marshal(s)
+		if err != nil {
+			t.Fatalf("n=%d: marshal: %v", len(xs), err)
+		}
+		if !strings.Contains(string(b), `"jain":null`) {
+			t.Fatalf("n=%d: %s", len(xs), b)
+		}
 	}
 }
 

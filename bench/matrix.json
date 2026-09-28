@@ -30,7 +30,9 @@
         { "scenario": "s1", "impl": "atomic", "G": 2, "P": 2, "W": 0, "note": "noise floor, P=2" },
         { "scenario": "s1", "impl": "atomic", "G": 4, "P": 4, "W": 0, "note": "noise floor, P=4" },
         { "scenario": "s1", "impl": "atomic", "G": 4, "P": 8, "W": 0, "note": "noise floor, P=8" },
-        { "scenario": "s1", "impl": "atomic", "G": 64, "P": 4, "W": 0, "note": "coverage" }
+        { "scenario": "s1", "impl": "atomic", "G": 64, "P": 4, "W": 0, "note": "coverage" },
+        { "scenario": "s1", "impl": "mutex", "G": 1, "P": 1, "W": 0, "note": "G=1: Jain undefined, written as null" },
+        { "scenario": "s1", "impl": "chan_reqresp", "G": 1, "P": 4, "W": 0, "note": "G=1: Jain undefined, written as null" }
       ]
     }
   }

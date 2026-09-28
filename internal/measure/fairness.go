@@ -49,13 +49,18 @@ type OpsSummary struct {
 	Max    uint64  `json:"max"`
 	Median float64 `json:"median"`
 	Zero   int     `json:"zero"`
-	Jain   float64 `json:"jain"`
-	MinMax float64 `json:"min_max"`
+	// Jain is nil (JSON null) when it is undefined: fewer than two
+	// goroutines, e.g. a G=1 cell. encoding/json cannot write NaN.
+	Jain   *float64 `json:"jain"`
+	MinMax float64  `json:"min_max"`
 }
 
 // Summarize computes min, max, median, zero count, Jain and min/max ratio.
 func Summarize(xs []uint64) OpsSummary {
-	s := OpsSummary{N: len(xs), Jain: Jain(xs)}
+	s := OpsSummary{N: len(xs)}
+	if j := Jain(xs); !math.IsNaN(j) {
+		s.Jain = &j
+	}
 	if len(xs) == 0 {
 		return s
 	}

@@ -377,7 +377,7 @@ func fillThroughput(rec *Record, spec scenario.Spec, r *scenario.Result,
 	}
 	t.ZeroOpG = t.Summary.Zero
 	if len(r.PerG) > 1 {
-		t.FairnessJain = f64(t.Summary.Jain)
+		t.FairnessJain = t.Summary.Jain
 		t.FairnessMinMax = f64(t.Summary.MinMax)
 	}
 	if spec.Scenario == scenario.S3 {
@@ -387,7 +387,7 @@ func fillThroughput(rec *Record, spec scenario.Spec, r *scenario.Result,
 			t.ProducerOps = r.PerGProd
 		}
 		if len(r.PerGProd) > 1 {
-			t.ProducerJain = f64(ps.Jain)
+			t.ProducerJain = ps.Jain
 		}
 	}
 	if spec.Scenario == scenario.S1 && spec.Impl == "chan_oneway" {

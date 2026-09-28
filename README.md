@@ -21,7 +21,7 @@ single definition of the windows, the cpusets and both cell sets:
 | Set | Cells | Rounds | Purpose |
 |---|---|---|---|
 | `main` | 845 | 5 | the published matrix |
-| `smoke` | 22 | 3 | harness check, label cells, noise floor |
+| `smoke` | 24 | 3 | harness check, label cells, noise floor, G=1 |
 
 ## Commands
 
