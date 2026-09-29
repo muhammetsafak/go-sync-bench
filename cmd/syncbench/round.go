@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -60,6 +61,7 @@ func cmdSelfTest(args []string) int {
 
 type setFlags struct {
 	matrix, set string
+	cells       string // optional cell list restricting the set (a rerun)
 	seed        uint64
 	round       int
 }
@@ -69,6 +71,7 @@ func (s *setFlags) register(fs *flag.FlagSet) {
 	fs.StringVar(&s.set, "set", "main", "matrix set")
 	fs.Uint64Var(&s.seed, "seed", 1, "run seed")
 	fs.IntVar(&s.round, "round", 1, "round number")
+	fs.StringVar(&s.cells, "cells", "", "file of cell ids (one per line, '#' comments) restricting the set")
 }
 
 func (s *setFlags) load() (*Matrix, []Cell, error) {
@@ -77,7 +80,23 @@ func (s *setFlags) load() (*Matrix, []Cell, error) {
 		return nil, nil, err
 	}
 	cells, err := m.Expand(s.set)
-	return m, cells, err
+	if err != nil || s.cells == "" {
+		return m, cells, err
+	}
+	f, err := os.Open(s.cells)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer f.Close()
+	ids, err := ReadCellIDs(f)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%s: %w", s.cells, err)
+	}
+	cells, err = Subset(cells, ids)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%s: %w", s.cells, err)
+	}
+	return m, cells, nil
 }
 
 func cmdCells(args []string) int {
@@ -174,6 +193,8 @@ func cmdRound(args []string) int {
 	outDir := fs.String("out", "/results", "result directory")
 	cpuset := fs.String("cpuset", "", "cpuset string (recorded only)")
 	resume := fs.Bool("resume", false, "skip repetitions whose raw file exists")
+	rerunOfDir := fs.String("rerun-of-dir", "", "in a cell rerun, the first-pass raw directory relative to -out/raw; "+
+		"attempt 1 of every repetition records rerun_of = <dir>/<id>.r<round>")
 	if err := fs.Parse(args); err != nil {
 		return 2
 	}
@@ -271,7 +292,11 @@ func cmdRound(args []string) int {
 			logf("%d/%d %s attempt=%d exit=%d valid=%t wall=%.2fs", i+1, len(order), id, attempt, code, valid, wall.Seconds())
 			return code
 		}
-		out, err := runRepetition(rawDir, id, s.round, *resume, run, readValid)
+		supersedes := ""
+		if *rerunOfDir != "" {
+			supersedes = path.Join(*rerunOfDir, fmt.Sprintf("%s.r%d", id, s.round))
+		}
+		out, err := runRepetition(rawDir, id, s.round, *resume, supersedes, run, readValid)
 		switch {
 		case err != nil:
 			logf("%s: %v", id, err)

@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/rand/v2"
 	"os"
 	"slices"
 	"strconv"
+	"strings"
 )
 
 // Matrix is bench/matrix.json: the windows, the cpusets and the cell sets.
@@ -102,6 +105,60 @@ func (m *Matrix) Expand(name string) ([]Cell, error) {
 	}
 	for _, c := range set.Cells {
 		add(c)
+	}
+	return out, nil
+}
+
+// ReadCellIDs parses a cell list: one cell id per line; blank lines and lines
+// starting with '#' are ignored. A repeated id or an empty list is an error.
+func ReadCellIDs(r io.Reader) ([]string, error) {
+	var ids []string
+	seen := map[string]bool{}
+	sc := bufio.NewScanner(r)
+	for n := 1; sc.Scan(); n++ {
+		line := strings.TrimSpace(sc.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		if strings.ContainsAny(line, " \t") {
+			return nil, fmt.Errorf("line %d: %q is not a single cell id", n, line)
+		}
+		if seen[line] {
+			return nil, fmt.Errorf("line %d: cell %s listed twice", n, line)
+		}
+		seen[line] = true
+		ids = append(ids, line)
+	}
+	if err := sc.Err(); err != nil {
+		return nil, err
+	}
+	if len(ids) == 0 {
+		return nil, fmt.Errorf("cell list is empty")
+	}
+	return ids, nil
+}
+
+// Subset keeps the cells whose id is in ids, in the order of cells. Every id
+// must name a cell of the set: a typo must not silently shrink a rerun.
+func Subset(cells []Cell, ids []string) ([]Cell, error) {
+	want := map[string]bool{}
+	for _, id := range ids {
+		want[id] = true
+	}
+	var out []Cell
+	for _, c := range cells {
+		if want[c.ID()] {
+			out = append(out, c)
+			delete(want, c.ID())
+		}
+	}
+	if len(want) > 0 {
+		var missing []string
+		for id := range want {
+			missing = append(missing, id)
+		}
+		slices.Sort(missing)
+		return nil, fmt.Errorf("%d cell id(s) not in the set: %s", len(missing), strings.Join(missing, " "))
 	}
 	return out, nil
 }

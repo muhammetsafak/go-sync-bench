@@ -6,8 +6,9 @@
 #   ./bench/verify.sh
 #
 # Steps: go.mod has no dependencies -> image build -> gofmt + go vet +
-# go test -race -> self-test x5 at GOMAXPROCS=2 -> matrix size -> park
-# threshold calibration (P=1, P=2) -> smoke run -> report.mjs.
+# go test -race -> report rule tests (node --test) and the pmset sleep parser
+# -> self-test x5 at GOMAXPROCS=2 -> matrix size -> park threshold calibration
+# (P=1, P=2) -> smoke run -> report.mjs.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
@@ -35,6 +36,21 @@ docker run --rm --network none --read-only --tmpfs /tmp:exec \
     go test -race -count=1 ./...
   ' || fail "gofmt/vet/test"
 log "gofmt, go vet, go test -race: ok"
+
+# 3b. The rerun trigger of the report (gates.mjs) and its wiring, offline in
+#     the Node image; the tests write only to the container's /tmp.
+docker run --rm --network none --read-only --tmpfs /tmp \
+  --user 65534:65534 --cap-drop ALL --security-opt no-new-privileges \
+  -v "$ROOT/bench:/bench:ro" -w /tmp \
+  "$NODE_IMAGE" node --test /bench/gates.test.mjs >/dev/null || fail "node --test bench/gates.test.mjs"
+log "report rule tests: ok"
+
+# 3c. The system-sleep gate reads `pmset -g`; its parser on fixed inputs.
+[ "$(printf ' sleep                1 (sleep prevented by powerd)\n displaysleep 0\n' | pmset_sleep_value)" = 1 ] \
+  || fail "pmset parser: sleep 1"
+[ "$(printf ' displaysleep 10\n sleep                0\n' | pmset_sleep_value)" = 0 ] || fail "pmset parser: sleep 0"
+[ "$(printf ' displaysleep 0\n disksleep 0\n' | pmset_sleep_value)" = unknown ] || fail "pmset parser: missing"
+log "pmset sleep parser: ok (host: $(pmset -g 2>/dev/null | pmset_sleep_value))"
 
 # 4. Self-test of the starving bit, five attempts at GOMAXPROCS=2.
 STAMP="${STAMP:-smoke-$(date -u +%Y%m%dT%H%M%SZ)}"
@@ -83,5 +99,15 @@ want=$(tool_run cells -set smoke)
 got=$(jq '.cells_measured' "$OUT/summary.json")
 [ "$got" = "$want" ] || fail "summary covers $got of $want smoke cells"
 [ -s "$OUT/summary.csv" ] || fail "summary.csv missing"
+[ -s "$OUT/rerun-cells.txt" ] || fail "rerun-cells.txt missing"
+jq -e '.method.rerun_trigger and .gates.rerun_basis == "trimmed_range_v2"' "$OUT/summary.json" >/dev/null \
+  || fail "summary.json does not state the rerun rule"
+
+# 10. A cell rerun needs the stamp of its first pass (usage error, exit 2).
+set +e
+STAMP= ./bench/run.sh --cells "$OUT/rerun-cells.txt" 2>/dev/null
+code=$?
+set -e
+[ "$code" = 2 ] || fail "run.sh --cells without STAMP exited $code, want 2"
 [ "$pass" = 5 ] || fail "self-test passed $pass/5"
 log "verify: ok ($OUT)"

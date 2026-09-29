@@ -8,8 +8,16 @@
 // Estimator: the median of the valid repetitions of a cell for every metric;
 // latency percentiles are per repetition first, then the median of the
 // percentiles. The best throughput repetition is kept as a separate field.
+//
+// Rerun trigger: the G4 flags keep the design's thresholds; which cells run
+// again is decided by the rule of gates.mjs (G4 v2, trimmed range) plus G5.
+// The candidates are written to rerun-cells.txt, the input of
+// `./bench/run.sh --cells`. summary.method states all of it in words.
 import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import {
+  RERUN_BASIS, RERUN_TPUT, RERUN_P99, RERUN_DRIFT_REPS, RERUN_RESOLUTION_FACTOR, RERUN_RULE, rerunTrigger,
+} from './gates.mjs';
 
 const dir = process.argv[2];
 if (!dir) {
@@ -141,7 +149,7 @@ for (const [id, rs] of [...byCell.entries()].sort()) {
   const r0 = rs[0];
   const ops = rs.map((r) => r.throughput?.ops_per_sec);
   const flags = [];
-  const rerun = [];
+  const rerunV1 = []; // the design's trigger (full range, G4 thresholds), kept for comparison
 
   // G4: spread of throughput and of op_latency p99.
   const tSpread = spread(ops);
@@ -149,12 +157,22 @@ for (const [id, rs] of [...byCell.entries()].sort()) {
   const pSpread = spread(p99s);
   if (rs.length >= 2 && tSpread !== null && tSpread > G4_TPUT) flags.push('spread_throughput');
   if (rs.length >= 2 && pSpread !== null && pSpread > G4_P99) flags.push('spread_p99');
-  if (flags.some((f) => f.startsWith('spread'))) rerun.push('G4');
+  if (flags.some((f) => f.startsWith('spread'))) rerunV1.push('G4');
 
   // G5: calibration drift per repetition.
   const drifted = rs.filter((r) => (r.calib?.drift ?? 0) > G5_DRIFT).length;
   if (drifted > 0) flags.push('calib_drift');
-  if (drifted >= 2) rerun.push('G5');
+  if (drifted >= 2) rerunV1.push('G5');
+
+  // Rerun trigger (G4 v2 + G5, gates.mjs).
+  const trig = rerunTrigger(rs.map((r) => ({
+    round: r.round,
+    ops: r.throughput?.ops_per_sec,
+    p99: r.latency?.op_latency_hist?.p99,
+    drift: r.calib?.drift,
+    tickNs: r.env?.clock_resolution_ns,
+  })));
+  const rerun = trig.gates;
 
   // G6: observer effect (latency fields only).
   const ratio = median(rs.map((r) => r.latency?.ops_ratio));
@@ -253,7 +271,9 @@ for (const [id, rs] of [...byCell.entries()].sort()) {
     wall_s_max: round(max(rs.map((r) => r.wall_s)), 2),
     flagged: flags.length > 0,
     flags,
+    spread_trim: trig.spreadTrim,
     rerun_gates: rerun,
+    rerun_gates_v1: rerunV1,
   };
   cells.push(cell);
 }
@@ -287,6 +307,15 @@ const gateFailed = cells.filter((c) => c.flags.some((f) => f !== 'missing_reps')
 const flagCounts = {};
 for (const c of cells) for (const f of c.flags) flagCounts[f] = (flagCounts[f] ?? 0) + 1;
 const walls = measured.map((t) => t.wall_s);
+const rerunCells = cells.filter((c) => c.rerun_gates.length);
+const v1Cells = cells.filter((c) => c.rerun_gates_v1.length);
+const byP = (cs) => {
+  const n = {};
+  for (const c of [...cs].sort((a, b) => a.P - b.P)) n[`P${c.P}`] = (n[`P${c.P}`] ?? 0) + 1;
+  return n;
+};
+// A cell rerun (run.sh --cells) leaves its link to the first pass here.
+const rerunOf = existsSync(join(dir, 'rerun_of.json')) ? readJSON(join(dir, 'rerun_of.json')) : null;
 
 const summary = {
   generated: new Date().toISOString(),
@@ -297,10 +326,23 @@ const summary = {
   cells_measured: cells.length,
   valid_reps: reps.length,
   invalid_reps: invalid,
+  rerun_of: rerunOf,
+  method: {
+    estimator: 'per metric, the median of the valid repetitions of a cell; latency percentiles are taken per ' +
+      'repetition first, then the median; below G8\'s floor a percentile is reported as "< X ns"; the best ' +
+      'throughput repetition is kept as a separate field',
+    flags: `G4 flags use all valid repetitions: spread_throughput when (max-min)/median > ${G4_TPUT}, ` +
+      `spread_p99 when the same ratio of op_latency p99 > ${G4_P99}; calib_drift when any repetition ` +
+      `drifted more than ${G5_DRIFT}. Flags do not decide reruns.`,
+    rerun_trigger: RERUN_RULE,
+    rerun_basis: RERUN_BASIS,
+  },
   thresholds: {
     G4_throughput_spread: G4_TPUT, G4_p99_spread: G4_P99, G5_drift: G5_DRIFT, G6_ops_ratio: G6_RATIO,
     G7_min_samples: G7_SAMPLES, G8_resolution_factor: G8_FACTOR, G9_window_tail: G9_TAIL,
     slow_share: SLOW_SHARE, park_threshold_us: 10,
+    rerun_throughput_trimmed_range: RERUN_TPUT, rerun_p99_trimmed_range: RERUN_P99,
+    rerun_p99_resolution_factor: RERUN_RESOLUTION_FACTOR, rerun_drift_reps: RERUN_DRIFT_REPS,
   },
   gates: {
     flagged_cells: flaggedCells,
@@ -308,7 +350,16 @@ const summary = {
     gate_failed_share: cells.length ? round(gateFailed / cells.length) : null,
     flag_counts: flagCounts,
     confidence_suggestion: cells.length && gateFailed / cells.length > LOW_CONFIDENCE_SHARE ? 'low' : 'medium',
-    rerun_cells: cells.filter((c) => c.rerun_gates.length).map((c) => ({ cell_id: c.cell_id, gates: c.rerun_gates })),
+    rerun_basis: RERUN_BASIS,
+    rerun_count: rerunCells.length,
+    rerun_by_p: byP(rerunCells),
+    rerun_cells: rerunCells.map((c) => ({ cell_id: c.cell_id, gates: c.rerun_gates })),
+    rerun_v1: {
+      basis: 'full_range_v1',
+      cells: v1Cells.length,
+      G4: v1Cells.filter((c) => c.rerun_gates_v1.includes('G4')).length,
+      G5: v1Cells.filter((c) => c.rerun_gates_v1.includes('G5')).length,
+    },
   },
   selftest: {
     runs: selftests.length,
@@ -329,6 +380,17 @@ const summary = {
 };
 delete summary.expected_cells;
 writeFileSync(join(dir, 'summary.json'), JSON.stringify(summary, null, 2) + '\n');
+
+// The rerun candidates, the input of `./bench/run.sh --cells`. Deterministic
+// (no timestamp): rewriting it from the same raw data yields the same file.
+writeFileSync(
+  join(dir, 'rerun-cells.txt'),
+  [
+    `# rerun candidates, ${RERUN_BASIS} + G5 (see summary.json method.rerun_trigger)`,
+    `# ${rerunCells.length} cells: ${Object.entries(byP(rerunCells)).map(([k, v]) => `${k}=${v}`).join(' ')}`,
+    ...rerunCells.map((c) => c.cell_id),
+  ].join('\n') + '\n',
+);
 
 // ---- CSV ------------------------------------------------------------------------------
 const cols = [
@@ -376,6 +438,7 @@ writeFileSync(join(dir, 'summary.csv'), csv + '\n');
 console.log(
   `report: ${cells.length} cells, ${reps.length} valid reps, ${invalid.length} invalid, ` +
     `${gateFailed} cells failed a soft gate (${summary.gates.confidence_suggestion}), ` +
+    `${rerunCells.length} rerun candidates (${RERUN_BASIS}; v1 ${v1Cells.length}), ` +
     `self-test ${JSON.stringify(summary.selftest.results)}, ` +
     `labels ${labelChecks.filter((l) => l.ok).length}/${labelChecks.length}`,
 );

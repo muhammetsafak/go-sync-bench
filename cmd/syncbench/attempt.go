@@ -21,8 +21,9 @@ const (
 )
 
 // repFunc runs one attempt, writing its raw record to target, and returns the
-// child's exit code. rerunOf names the evidence file of a failed first
-// attempt, empty on the first attempt.
+// child's exit code. rerunOf names the repetition the attempt replaces: on
+// attempt 2 the evidence file of the failed first attempt, on attempt 1 the
+// first-pass repetition of a cell rerun (empty outside a rerun).
 type repFunc func(target string, attempt int, rerunOf string) int
 
 // runRepetition applies the hard-gate policy of the design to one repetition:
@@ -35,10 +36,14 @@ type repFunc func(target string, attempt int, rerunOf string) int
 //   - a second failure stays at the final path with gates.valid = false and is
 //     reported as a harness error: the caller stops the run
 //
+// supersedes is the rerun_of of attempt 1: in a cell rerun (--cells) it names
+// the first-pass repetition this one replaces, relative to rawDir; empty in a
+// first pass.
+//
 // With resume, a valid final record is skipped. An invalid one (the harness
 // error of an interrupted run) is moved to the next free evidence name and the
 // repetition is run again from attempt 1, so evidence is never overwritten.
-func runRepetition(rawDir, id string, round int, resume bool, run repFunc, valid func(string) bool) (repOutcome, error) {
+func runRepetition(rawDir, id string, round int, resume bool, supersedes string, run repFunc, valid func(string) bool) (repOutcome, error) {
 	path := filepath.Join(rawDir, fmt.Sprintf("%s.r%d.json", id, round))
 	if resume {
 		if _, err := os.Stat(path); err == nil {
@@ -55,7 +60,7 @@ func runRepetition(rawDir, id string, round int, resume bool, run repFunc, valid
 		}
 	}
 	attempt := path + ".attempt"
-	if code := run(attempt, 1, ""); code == exitG2 {
+	if code := run(attempt, 1, supersedes); code == exitG2 {
 		return repG2, nil
 	}
 	if valid(attempt) {

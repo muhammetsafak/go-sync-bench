@@ -29,7 +29,13 @@ single definition of the windows, the cpusets and both cell sets:
 ./bench/verify.sh                          # acceptance: vet, race tests, self-test x5, smoke run, report
 ./bench/run.sh --smoke                     # smoke set only
 STAMP=$(date -u +%F) ./bench/run.sh --all  # main matrix; resumable with --resume
-node bench/report.mjs results/<stamp>      # summary.json, summary.csv
+STAMP=<stamp> ./bench/run.sh --cells results/<stamp>/rerun-cells.txt
+                                           # rerun the listed cells into results/<stamp>/rerun/
+docker run --rm --network none --read-only --tmpfs /tmp --user 65534:65534 \
+  --cap-drop ALL --security-opt no-new-privileges \
+  -v "$PWD/bench:/bench:ro" -v "$PWD/results/<stamp>:/results" \
+  node:24-trixie-slim node /bench/report.mjs /results
+                                           # summary.json, summary.csv, rerun-cells.txt
 ```
 
 Nothing is run on the host except Docker, `ps`, `pmset` and `jq`. Build,
@@ -57,8 +63,11 @@ its own process, so rusage, `runtime/metrics` and the heap start clean. A
 repetition has a 0.5 s warm-up, a 1.5 s throughput window and a 2.0 s
 latency window (≈ 4.4 s wall in total, budget 5 s).
 
-**Host gates.** E2 before every round: AC power and no recorded thermal or
-CPU speed warning (`pmset`). E1 after every container: a fixed cool-down
+**Host gates.** E2 before the run and every round: system sleep disabled
+(`pmset -g` shows `sleep 0`; otherwise `run.sh` exits 6 and names the fix,
+`sudo pmset -c sleep 0`), AC power and no recorded thermal or CPU speed
+warning (`pmset`). A `caffeinate` assertion does not count: it ends with its
+process. The smoke run records the sleep setting but does not enforce it. E1 after every container: a fixed cool-down
 (60 s, 5 s for smoke), then the summed CPU of host processes outside the
 Docker VM must be below one core, waiting at most 10 minutes. The smoke run
 records E1 but does not wait for it.
@@ -97,8 +106,27 @@ replacement fails too, that is a harness error: `round` exits 9 and `run.sh`
 stops, noting it in `RUN.md`. `--resume` keeps an invalid record it finds as
 the next free `<cell>.r<round>.invalid[-N].json` and measures the repetition
 again, so no evidence is overwritten. Soft gates only flag: `report.mjs` lists the cells and the
-re-run candidates (G4, or G5 in two or more repetitions). If more than 15 %
-of the cells fail a soft gate, the report suggests low confidence.
+re-run candidates. If more than 15 % of the cells fail a soft gate, the report
+suggests low confidence.
+
+**Rerun trigger** (`bench/gates.mjs`, `rerun_basis: trimmed_range_v2`). The
+G4 flags above keep their thresholds and still describe the cell; which cells
+run again is decided separately. The one repetition farthest from the median
+is dropped (with three or more values), and a cell is a candidate when the
+remaining range/median exceeds 10 % for throughput or 50 % for op_latency
+p99. The p99 test applies only when the median p99 is at or above G8's floor
+and the trimmed p99 range is wider than one clock tick. G5 is unchanged: two
+or more drifted repetitions. `summary.json` states the rule under `method`,
+keeps the design's original trigger for comparison under `gates.rerun_v1`,
+and `rerun-cells.txt` lists the candidates.
+
+**Cell rerun.** `run.sh --cells FILE` (with `STAMP` of the first pass) runs
+every listed main-set cell again from scratch, all rounds, with the same
+protocol and a seed of its own, into `results/<stamp>/rerun/`. The first pass
+is only read. Every rerun record's attempt 1 carries `rerun_of` pointing at
+the first-pass repetition it replaces (`../../raw/<cell>.r<round>`), and
+`rerun/rerun_of.json` lists the link; `report.mjs results/<stamp>/rerun`
+summarises the second pass on its own.
 
 ## Output
 
@@ -112,6 +140,8 @@ results/<stamp>/
   order/r<n>-P<p>.txt
   timing/r<n>-P<p>.jsonl wall time, exit code and gate status per repetition
   summary.json, summary.csv
+  rerun-cells.txt        rerun candidates, the input of run.sh --cells
+  rerun/                 a cell rerun: the same layout, plus cells.txt and rerun_of.json
 ```
 
 ### Raw record

@@ -36,11 +36,12 @@ sandbox_run() {
 }
 
 # tool_run <args...>: a one-shot helper call of the harness (cell lists, shuffle
-# orders) in the same sandbox, without CPU pinning or a result mount.
+# orders) in the same sandbox, without CPU pinning. With TOOL_MOUNT set, that
+# directory is mounted read-only at /results (a cell rerun reads its list there).
 tool_run() {
   docker run --rm --network none --read-only --tmpfs /tmp \
     --user 65534:65534 --cap-drop ALL --security-opt no-new-privileges \
-    "$IMAGE" "$@"
+    ${TOOL_MOUNT:+-v "$TOOL_MOUNT:/results:ro"} "$IMAGE" "$@"
 }
 
 # host_load: summed %CPU of every host process except the Docker VM and its
@@ -73,4 +74,22 @@ power_ok() {
     /Speed_Limit/ { for (i = 1; i <= NF; i++) if ($i ~ /^[0-9]+$/ && $i < 100) bad = 1 }
     END { exit bad }' || return 1
   return 0
+}
+
+# pmset_sleep_value: reads `pmset -g` on stdin and prints the value of the
+# system "sleep" setting (minutes of idle before system sleep, 0 = never), or
+# "unknown" when the line is missing. displaysleep and disksleep do not count.
+pmset_sleep_value() {
+  awk '$1 == "sleep" && $2 ~ /^[0-9]+$/ { print $2; found = 1; exit }
+       END { if (!found) print "unknown" }'
+}
+
+# sleep_ok: the system-sleep part of gate E2. Prints the value for RUN.md and
+# fails unless system sleep is disabled (sleep 0). A caffeinate assertion is
+# not enough: it ends with the process that holds it, the setting does not.
+sleep_ok() {
+  local v
+  v="$(pmset -g 2>/dev/null | pmset_sleep_value)"
+  printf 'sleep: %s\n' "$v"
+  [ "$v" = 0 ]
 }

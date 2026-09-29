@@ -49,14 +49,16 @@ var placeholder = string(missingRecord("c", 1))
 
 func TestRunRepetition(t *testing.T) {
 	cases := []struct {
-		name    string
-		pre     map[string]string // files present before the call
-		resume  bool
-		results []string
-		codes   []int
-		want    repOutcome
-		files   map[string]string
-		rerun   []string
+		name   string
+		pre    map[string]string // files present before the call
+		resume bool
+		// supersedes is the first-pass repetition of a cell rerun.
+		supersedes string
+		results    []string
+		codes      []int
+		want       repOutcome
+		files      map[string]string
+		rerun      []string
 	}{
 		{
 			name: "valid first attempt", results: []string{"ok"}, want: repValid,
@@ -107,6 +109,19 @@ func TestRunRepetition(t *testing.T) {
 			rerun: []string{"", "c.r1.invalid-3"},
 		},
 		{
+			name: "cell rerun: attempt 1 points at the first-pass repetition", supersedes: "../../raw/c.r1",
+			results: []string{"ok"}, want: repValid,
+			files: map[string]string{"c.r1.json": "ok"}, rerun: []string{"../../raw/c.r1"},
+		},
+		{
+			// Attempt 2 replaces the failed attempt 1, whose own record keeps
+			// the link to the first pass: the chain is rerun -> evidence -> first pass.
+			name: "cell rerun: attempt 2 points at the evidence of attempt 1", supersedes: "../../raw/c.r1",
+			results: []string{"bad", "ok"}, want: repValid,
+			files: map[string]string{"c.r1.invalid.json": "bad", "c.r1.json": "ok"},
+			rerun: []string{"../../raw/c.r1", "c.r1.invalid"},
+		},
+		{
 			name: "without resume an existing record is replaced", pre: map[string]string{"c.r1.json": "bad"},
 			results: []string{"ok"}, want: repValid,
 			files: map[string]string{"c.r1.json": "ok"}, rerun: []string{""},
@@ -119,7 +134,7 @@ func TestRunRepetition(t *testing.T) {
 				os.WriteFile(filepath.Join(dir, n), []byte(v), 0o644)
 			}
 			f := &fakeRun{results: c.results, codes: c.codes}
-			got, err := runRepetition(dir, "c", 1, c.resume, f.run, fakeValid)
+			got, err := runRepetition(dir, "c", 1, c.resume, c.supersedes, f.run, fakeValid)
 			if err != nil {
 				t.Fatal(err)
 			}
