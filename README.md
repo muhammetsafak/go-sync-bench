@@ -128,6 +128,17 @@ the first-pass repetition it replaces (`../../raw/<cell>.r<round>`), and
 `rerun/rerun_of.json` lists the link; `report.mjs results/<stamp>/rerun`
 summarises the second pass on its own.
 
+**Merged report.** Once `results/<stamp>/rerun/` exists, `report.mjs
+results/<stamp>` reads the first pass merged with the rerun: every cell listed
+in `rerun/cells.txt` is replaced entirely by its rerun (raw and timing), the
+rest of the first pass is taken as is, and `summary.json`, `summary.csv` and
+`rerun-cells.txt` are written to `results/<stamp>/merged/`; the first pass and
+the rerun are only read. `summary.merged` records the file counts. A rerun
+cell that was a candidate in the first pass and still meets the G4 part of
+the trigger on its rerun gets the `spread_persistent` flag (definition under
+`method.spread_persistent`, list under `gates.spread_persistent`); the flag
+thresholds do not change. `--no-merge` summarises the first pass alone.
+
 ## Output
 
 ```
@@ -142,6 +153,7 @@ results/<stamp>/
   summary.json, summary.csv
   rerun-cells.txt        rerun candidates, the input of run.sh --cells
   rerun/                 a cell rerun: the same layout, plus cells.txt and rerun_of.json
+  merged/                report of the first pass merged with rerun/ (summary.*, rerun-cells.txt)
 ```
 
 ### Raw record

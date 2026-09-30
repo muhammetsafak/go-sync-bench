@@ -3,7 +3,12 @@
 // design evaluated per cell. Raw files are never modified; the report can be
 // re-run at any time.
 //
-//   node bench/report.mjs results/<stamp>
+//   node bench/report.mjs [--no-merge] results/<stamp>
+//
+// With a cell rerun in results/<stamp>/rerun/, the report reads the first pass
+// merged with the rerun and writes to results/<stamp>/merged/ (see "inputs"
+// below); without one, or with --no-merge, it summarises results/<stamp> in
+// place.
 //
 // Estimator: the median of the valid repetitions of a cell for every metric;
 // latency percentiles are per repetition first, then the median of the
@@ -13,15 +18,17 @@
 // again is decided by the rule of gates.mjs (G4 v2, trimmed range) plus G5.
 // The candidates are written to rerun-cells.txt, the input of
 // `./bench/run.sh --cells`. summary.method states all of it in words.
-import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   RERUN_BASIS, RERUN_TPUT, RERUN_P99, RERUN_DRIFT_REPS, RERUN_RESOLUTION_FACTOR, RERUN_RULE, rerunTrigger,
 } from './gates.mjs';
 
-const dir = process.argv[2];
+const args = process.argv.slice(2);
+const noMerge = args.includes('--no-merge');
+const dir = args.find((a) => !a.startsWith('--'));
 if (!dir) {
-  console.error('usage: node bench/report.mjs <results-dir>');
+  console.error('usage: node bench/report.mjs [--no-merge] <results-dir>');
   process.exit(2);
 }
 
@@ -56,43 +63,80 @@ const spread = (xs) => {
 const round = (x, d = 4) => (x === null || x === undefined ? null : Number(x.toFixed(d)));
 const get = (o, path) => path.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
 
+// ---- inputs: first pass, or first pass merged with a cell rerun ---------------
+// A cell rerun (run.sh --cells) lives in <dir>/rerun/. When it is there, the
+// report reads the merged set: every rerun cell is replaced entirely by its
+// rerun (raw, timing), the rest of the first pass is taken as is, and the
+// output goes to <dir>/merged/. Nothing under <dir> or <dir>/rerun is written.
+// `--no-merge` keeps the first pass on its own.
+const rerunDir = join(dir, 'rerun');
+const merge = !noMerge && existsSync(join(rerunDir, 'raw')) && existsSync(join(rerunDir, 'cells.txt'));
+const outDir = merge ? join(dir, 'merged') : dir;
+const rerunIds = merge
+  ? new Set(readFileSync(join(rerunDir, 'cells.txt'), 'utf8').split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#')))
+  : new Set();
+const fileCell = (f) => f.split('.')[0];
+
 // ---- raw files ---------------------------------------------------------------
-const rawDir = join(dir, 'raw');
-const files = existsSync(rawDir) ? readdirSync(rawDir) : [];
 const reps = [];
 const invalid = [];
-for (const f of files) {
-  if (!f.endsWith('.json')) continue;
-  const rec = readJSON(join(rawDir, f));
-  if (/\.invalid(-\d+)?\.json$/.test(f)) {
-    // A placeholder (`missing`) stands for an attempt that left no record.
-    invalid.push({ file: f, cell_id: rec.cell_id, round: rec.round, gates: rec.gates, missing: rec.missing ?? null });
-    continue;
+const firstPassReps = new Map(); // rerun cell -> its valid first-pass repetitions
+const rawCount = { first_pass: 0, rerun: 0 };
+function readRaw(rawDir, from) {
+  const files = existsSync(rawDir) ? readdirSync(rawDir).sort() : [];
+  for (const f of files) {
+    if (!f.endsWith('.json')) continue;
+    const replaced = from === 'first_pass' && rerunIds.has(fileCell(f));
+    const rec = readJSON(join(rawDir, f));
+    if (replaced) {
+      if (!/\.invalid(-\d+)?\.json$/.test(f) && rec.gates?.valid) {
+        if (!firstPassReps.has(rec.cell_id)) firstPassReps.set(rec.cell_id, []);
+        firstPassReps.get(rec.cell_id).push(rec);
+      }
+      continue;
+    }
+    rawCount[from]++;
+    if (/\.invalid(-\d+)?\.json$/.test(f)) {
+      // A placeholder (`missing`) stands for an attempt that left no record.
+      invalid.push({ file: f, cell_id: rec.cell_id, round: rec.round, gates: rec.gates, missing: rec.missing ?? null });
+      continue;
+    }
+    if (!rec.gates?.valid) {
+      invalid.push({ file: f, cell_id: rec.cell_id, round: rec.round, gates: rec.gates });
+      continue;
+    }
+    reps.push(rec);
   }
-  if (!rec.gates?.valid) {
-    invalid.push({ file: f, cell_id: rec.cell_id, round: rec.round, gates: rec.gates });
-    continue;
-  }
-  reps.push(rec);
 }
+readRaw(join(dir, 'raw'), 'first_pass');
+if (merge) readRaw(join(rerunDir, 'raw'), 'rerun');
 
 // ---- side files: timing and self-test -----------------------------------------
 const timing = [];
-if (existsSync(join(dir, 'timing'))) {
-  for (const f of readdirSync(join(dir, 'timing'))) {
-    for (const line of readFileSync(join(dir, 'timing', f), 'utf8').split('\n')) {
-      if (line.trim()) timing.push(JSON.parse(line));
+function readTiming(base, skipRerun) {
+  if (!existsSync(join(base, 'timing'))) return;
+  for (const f of readdirSync(join(base, 'timing')).sort()) {
+    for (const line of readFileSync(join(base, 'timing', f), 'utf8').split('\n')) {
+      if (!line.trim()) continue;
+      const t = JSON.parse(line);
+      if (skipRerun && rerunIds.has(t.cell_id)) continue;
+      timing.push(t);
     }
   }
 }
+readTiming(dir, merge);
+if (merge) readTiming(rerunDir, false);
 const measured = timing.filter((t) => !t.skipped);
 const selftests = [];
-if (existsSync(join(dir, 'selftest'))) {
-  for (const f of readdirSync(join(dir, 'selftest')).sort()) {
-    const s = readJSON(join(dir, 'selftest', f));
-    selftests.push({ file: f, result: s.result, ...s });
+function readSelftests(base, prefix) {
+  if (!existsSync(join(base, 'selftest'))) return;
+  for (const f of readdirSync(join(base, 'selftest')).sort()) {
+    const s = readJSON(join(base, 'selftest', f));
+    selftests.push({ file: prefix + f, result: s.result, ...s });
   }
 }
+readSelftests(dir, merge ? 'first-' : '');
+if (merge) readSelftests(rerunDir, 'rerun-');
 
 // ---- per cell -----------------------------------------------------------------
 const byCell = new Map();
@@ -143,6 +187,16 @@ function percentile(rs, hist, q) {
   return { value: Math.round(m), spread: round(spread(vals)), dropped_g7: dropped || undefined };
 }
 
+function triggerOf(rs) {
+  return rerunTrigger(rs.map((r) => ({
+    round: r.round,
+    ops: r.throughput?.ops_per_sec,
+    p99: r.latency?.op_latency_hist?.p99,
+    drift: r.calib?.drift,
+    tickNs: r.env?.clock_resolution_ns,
+  })));
+}
+
 const cells = [];
 for (const [id, rs] of [...byCell.entries()].sort()) {
   rs.sort((a, b) => a.round - b.round);
@@ -165,14 +219,16 @@ for (const [id, rs] of [...byCell.entries()].sort()) {
   if (drifted >= 2) rerunV1.push('G5');
 
   // Rerun trigger (G4 v2 + G5, gates.mjs).
-  const trig = rerunTrigger(rs.map((r) => ({
-    round: r.round,
-    ops: r.throughput?.ops_per_sec,
-    p99: r.latency?.op_latency_hist?.p99,
-    drift: r.calib?.drift,
-    tickNs: r.env?.clock_resolution_ns,
-  })));
+  const trig = triggerOf(rs);
   const rerun = trig.gates;
+
+  // spread_persistent: a rerun cell that was a candidate in the first pass
+  // and whose rerun still meets the G4 part of the trigger.
+  const firstPassGates = merge && rerunIds.has(id)
+    ? triggerOf([...(firstPassReps.get(id) ?? [])].sort((a, b) => a.round - b.round)).gates
+    : null;
+  const persistent = firstPassGates !== null && firstPassGates.length > 0 && rerun.includes('G4');
+  if (persistent) flags.push('spread_persistent');
 
   // G6: observer effect (latency fields only).
   const ratio = median(rs.map((r) => r.latency?.ops_ratio));
@@ -275,6 +331,10 @@ for (const [id, rs] of [...byCell.entries()].sort()) {
     rerun_gates: rerun,
     rerun_gates_v1: rerunV1,
   };
+  if (merge) {
+    cell.source = rerunIds.has(id) ? 'rerun' : 'first_pass';
+    cell.first_pass_rerun_gates = firstPassGates;
+  }
   cells.push(cell);
 }
 
@@ -315,7 +375,9 @@ const byP = (cs) => {
   return n;
 };
 // A cell rerun (run.sh --cells) leaves its link to the first pass here.
-const rerunOf = existsSync(join(dir, 'rerun_of.json')) ? readJSON(join(dir, 'rerun_of.json')) : null;
+const rerunOfPath = join(merge ? rerunDir : dir, 'rerun_of.json');
+const rerunOf = existsSync(rerunOfPath) ? readJSON(rerunOfPath) : null;
+const persistentCells = cells.filter((c) => c.flags.includes('spread_persistent'));
 
 const summary = {
   generated: new Date().toISOString(),
@@ -327,6 +389,17 @@ const summary = {
   valid_reps: reps.length,
   invalid_reps: invalid,
   rerun_of: rerunOf,
+  merged: merge
+    ? {
+      rule: 'a rerun replaces the cell entirely; first-pass files of rerun cells are left out, the rest of ' +
+        'the first pass is taken as is',
+      first_pass_raw: '../raw',
+      rerun_raw: '../rerun/raw',
+      replaced_cells: rerunIds.size,
+      raw_files_from_first_pass: rawCount.first_pass,
+      raw_files_from_rerun: rawCount.rerun,
+    }
+    : undefined,
   method: {
     estimator: 'per metric, the median of the valid repetitions of a cell; latency percentiles are taken per ' +
       'repetition first, then the median; below G8\'s floor a percentile is reported as "< X ns"; the best ' +
@@ -336,6 +409,12 @@ const summary = {
       `drifted more than ${G5_DRIFT}. Flags do not decide reruns.`,
     rerun_trigger: RERUN_RULE,
     rerun_basis: RERUN_BASIS,
+    spread_persistent: merge
+      ? 'spread_persistent marks a rerun cell (listed in rerun/cells.txt) that met the rerun trigger in the ' +
+        'first pass and still meets its G4 part (trimmed range) on the rerun data alone. It is added to the ' +
+        'cell\'s flags; the G4 flag thresholds are unchanged. A rerun cell that stays flagged only by the ' +
+        'spread_* flags, or only by G5, is not marked.'
+      : undefined,
   },
   thresholds: {
     G4_throughput_spread: G4_TPUT, G4_p99_spread: G4_P99, G5_drift: G5_DRIFT, G6_ops_ratio: G6_RATIO,
@@ -360,6 +439,13 @@ const summary = {
       G4: v1Cells.filter((c) => c.rerun_gates_v1.includes('G4')).length,
       G5: v1Cells.filter((c) => c.rerun_gates_v1.includes('G5')).length,
     },
+    spread_persistent: merge
+      ? {
+        count: persistentCells.length,
+        by_p: byP(persistentCells),
+        cells: persistentCells.map((c) => c.cell_id),
+      }
+      : undefined,
   },
   selftest: {
     runs: selftests.length,
@@ -379,12 +465,13 @@ const summary = {
   cells,
 };
 delete summary.expected_cells;
-writeFileSync(join(dir, 'summary.json'), JSON.stringify(summary, null, 2) + '\n');
+mkdirSync(outDir, { recursive: true });
+writeFileSync(join(outDir, 'summary.json'), JSON.stringify(summary, null, 2) + '\n');
 
 // The rerun candidates, the input of `./bench/run.sh --cells`. Deterministic
 // (no timestamp): rewriting it from the same raw data yields the same file.
 writeFileSync(
-  join(dir, 'rerun-cells.txt'),
+  join(outDir, 'rerun-cells.txt'),
   [
     `# rerun candidates, ${RERUN_BASIS} + G5 (see summary.json method.rerun_trigger)`,
     `# ${rerunCells.length} cells: ${Object.entries(byP(rerunCells)).map(([k, v]) => `${k}=${v}`).join(' ')}`,
@@ -433,12 +520,13 @@ const esc = (v) => {
 const csv = [cols.map(([h]) => h).join(',')]
   .concat(cells.map((c) => cols.map(([, f]) => esc(f(c))).join(',')))
   .join('\n');
-writeFileSync(join(dir, 'summary.csv'), csv + '\n');
+writeFileSync(join(outDir, 'summary.csv'), csv + '\n');
 
 console.log(
   `report: ${cells.length} cells, ${reps.length} valid reps, ${invalid.length} invalid, ` +
     `${gateFailed} cells failed a soft gate (${summary.gates.confidence_suggestion}), ` +
     `${rerunCells.length} rerun candidates (${RERUN_BASIS}; v1 ${v1Cells.length}), ` +
     `self-test ${JSON.stringify(summary.selftest.results)}, ` +
-    `labels ${labelChecks.filter((l) => l.ok).length}/${labelChecks.length}`,
+    `labels ${labelChecks.filter((l) => l.ok).length}/${labelChecks.length}` +
+    (merge ? `, merged ${rerunIds.size} rerun cells, ${persistentCells.length} spread_persistent -> ${outDir}` : ''),
 );

@@ -2,7 +2,7 @@
 // wiring in report.mjs. Runs offline; report.mjs writes only to a temp dir.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -114,4 +114,115 @@ test('report.mjs: flags unchanged, rerun list and method from the E rule', () =>
   assert.equal(s.rerun_of, null);
   const list = readFileSync(join(dir, 'rerun-cells.txt'), 'utf8').split('\n').filter((l) => l && !l.startsWith('#'));
   assert.deepEqual(list, ['s1-mutex-g4-p2-w0']);
+  assert.equal(s.merged, undefined, 'no rerun: no merge');
+  assert.equal(s.gates.spread_persistent, undefined);
+  assert.equal(s.method.spread_persistent, undefined);
+  assert.equal(existsSync(join(dir, 'merged')), false);
+});
+
+// A synthetic first pass plus a cell rerun under rerun/.
+const REPORT = join(dirname(fileURLToPath(import.meta.url)), 'report.mjs');
+function writeCell(rawDir, id, P, ops, p99) {
+  const [scenario, impl] = id.split('-');
+  ops.forEach((o, i) => {
+    writeFileSync(join(rawDir, `${id}.r${i + 1}.json`), JSON.stringify({
+      cell_id: id, set: 'main', round: i + 1, scenario, impl, G: 4, P, W_nominal_ns: 0,
+      gates: { valid: true }, env: { clock_resolution_ns: TICK }, calib: { drift: 0 },
+      throughput: { ops_per_sec: o },
+      latency: { op_latency_hist: { p99: p99?.[i] ?? 10000 } },
+    }));
+  });
+}
+function timingLines(ids) {
+  return ids.flatMap((id) => [1, 2, 3, 4, 5].map((round) => JSON.stringify({ cell_id: id, round, attempt: 1, wall_s: 1 })))
+    .join('\n') + '\n';
+}
+const STILL = 's1-mutex-g4-p2-w0'; // candidate in both passes
+const CLEAN = 's1-mutex-g4-p1-w0'; // candidate in the first pass only
+const KEPT = 's1-chan-g4-p2-w0'; // not rerun, flagged by the full-range spread only
+const G5ONLY = 's1-atomic-g4-p4-w0'; // candidate first, rerun trips only G5
+function mergedFixture() {
+  const dir = mkdtempSync(join(tmpdir(), 'report-merge-'));
+  for (const d of ['raw', 'timing', 'selftest', 'rerun', 'rerun/raw', 'rerun/timing', 'rerun/selftest']) {
+    mkdirSync(join(dir, d));
+  }
+  writeFileSync(join(dir, 'matrix.json'), JSON.stringify({ sets: { main: { rounds: 5 } } }));
+  writeCell(join(dir, 'raw'), STILL, 2, [100, 120, 100, 130, 100]);
+  writeCell(join(dir, 'raw'), CLEAN, 1, [100, 125, 100, 135, 100]);
+  writeCell(join(dir, 'raw'), KEPT, 2, [100, 101, 102, 100, 150]);
+  writeCell(join(dir, 'raw'), G5ONLY, 4, [100, 125, 100, 135, 100]);
+  writeCell(join(dir, 'rerun/raw'), STILL, 2, [100, 115, 100, 125, 100]);
+  writeCell(join(dir, 'rerun/raw'), CLEAN, 1, [100, 101, 102, 100, 100]);
+  writeCell(join(dir, 'rerun/raw'), G5ONLY, 4, [100, 101, 102, 100, 100]);
+  // G5 on the rerun: two drifted repetitions, no spread.
+  for (const r of [1, 2]) {
+    const f = join(dir, 'rerun/raw', `${G5ONLY}.r${r}.json`);
+    const rec = JSON.parse(readFileSync(f, 'utf8'));
+    rec.calib.drift = 0.08;
+    writeFileSync(f, JSON.stringify(rec));
+  }
+  writeFileSync(join(dir, 'timing', 'r1-P1.jsonl'), timingLines([STILL, CLEAN, KEPT, G5ONLY]));
+  writeFileSync(join(dir, 'rerun/timing', 'r1-P1.jsonl'), timingLines([STILL, CLEAN, G5ONLY]));
+  writeFileSync(join(dir, 'selftest', 'r1-P2.json'), JSON.stringify({ result: 'pass' }));
+  writeFileSync(join(dir, 'rerun/selftest', 'r1-P2.json'), JSON.stringify({ result: 'pass' }));
+  writeFileSync(join(dir, 'rerun/cells.txt'), `# rerun candidates\n${STILL}\n${CLEAN}\n${G5ONLY}\n`);
+  writeFileSync(join(dir, 'rerun/rerun_of.json'), JSON.stringify({ rerun_of: 'first', cells: [STILL, CLEAN, G5ONLY] }));
+  return dir;
+}
+
+test('report.mjs: a cell rerun is merged into merged/, spread_persistent marks what stays', () => {
+  const dir = mergedFixture();
+  const out = execFileSync(process.execPath, [REPORT, dir], { encoding: 'utf8' });
+  assert.match(out, /merged 3 rerun cells, 1 spread_persistent/);
+  assert.equal(existsSync(join(dir, 'summary.json')), false, 'the first pass directory is not written');
+  const s = JSON.parse(readFileSync(join(dir, 'merged', 'summary.json'), 'utf8'));
+  const by = Object.fromEntries(s.cells.map((c) => [c.cell_id, c]));
+
+  // The rerun replaces the cell entirely; the rest of the first pass stays.
+  assert.equal(s.cells_measured, 4);
+  assert.equal(s.valid_reps, 20);
+  assert.deepEqual(s.merged && {
+    replaced: s.merged.replaced_cells, first: s.merged.raw_files_from_first_pass, rerun: s.merged.raw_files_from_rerun,
+  }, { replaced: 3, first: 5, rerun: 15 });
+  assert.equal(by[STILL].source, 'rerun');
+  assert.equal(by[KEPT].source, 'first_pass');
+  assert.equal(by[STILL].throughput.max, 125, 'rerun values, not first-pass ones');
+  assert.equal(s.rerun_of.rerun_of, 'first');
+  assert.equal(s.timing.reps, 20, 'first-pass timing of rerun cells left out');
+  assert.deepEqual(s.selftest.files.map((f) => f.file), ['first-r1-P2.json', 'rerun-r1-P2.json']);
+
+  // spread_persistent: candidate in the first pass, G4 trigger still met on the rerun.
+  assert.deepEqual(by[STILL].first_pass_rerun_gates, ['G4']);
+  assert.deepEqual(by[STILL].rerun_gates, ['G4']);
+  assert.deepEqual(by[STILL].flags, ['spread_throughput', 'spread_persistent']);
+  assert.deepEqual(by[CLEAN].first_pass_rerun_gates, ['G4']);
+  assert.deepEqual(by[CLEAN].flags, []);
+  assert.deepEqual(by[G5ONLY].rerun_gates, ['G5']);
+  assert.equal(by[G5ONLY].flags.includes('spread_persistent'), false, 'G5 alone is not a spread');
+  assert.equal(by[KEPT].first_pass_rerun_gates, null);
+  assert.deepEqual(by[KEPT].flags, ['spread_throughput'], 'not rerun: never persistent');
+  assert.deepEqual(s.gates.spread_persistent, { count: 1, by_p: { P2: 1 }, cells: [STILL] });
+  assert.equal(s.gates.flag_counts.spread_persistent, 1);
+  assert.match(s.method.spread_persistent, /first pass/);
+  assert.match(s.method.spread_persistent, /thresholds are unchanged/);
+  assert.equal(s.thresholds.G4_throughput_spread, 0.10, 'flag thresholds unchanged');
+  assert.equal(s.thresholds.G4_p99_spread, 0.25, 'flag thresholds unchanged');
+  const list = readFileSync(join(dir, 'merged', 'rerun-cells.txt'), 'utf8').split('\n').filter((l) => l && !l.startsWith('#'));
+  assert.deepEqual(list, [G5ONLY, STILL]);
+  assert.match(readFileSync(join(dir, 'merged', 'summary.csv'), 'utf8'), /spread_throughput;spread_persistent/);
+});
+
+test('report.mjs --no-merge: the first pass alone, as before the rerun', () => {
+  const dir = mergedFixture();
+  execFileSync(process.execPath, [REPORT, '--no-merge', dir], { stdio: 'pipe' });
+  assert.equal(existsSync(join(dir, 'merged')), false);
+  const s = JSON.parse(readFileSync(join(dir, 'summary.json'), 'utf8'));
+  assert.equal(s.cells_measured, 4);
+  assert.equal(s.merged, undefined);
+  assert.equal(s.gates.spread_persistent, undefined);
+  assert.equal(s.rerun_of, null);
+  assert.equal(s.timing.reps, 20);
+  assert.deepEqual(s.selftest.files.map((f) => f.file), ['r1-P2.json']);
+  assert.equal(s.cells.some((c) => 'source' in c || c.flags.includes('spread_persistent')), false);
+  assert.deepEqual(s.gates.rerun_cells.map((c) => c.cell_id), [G5ONLY, CLEAN, STILL]);
 });
