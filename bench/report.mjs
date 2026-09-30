@@ -68,14 +68,25 @@ const get = (o, path) => path.split('.').reduce((a, k) => (a == null ? a : a[k])
 // report reads the merged set: every rerun cell is replaced entirely by its
 // rerun (raw, timing), the rest of the first pass is taken as is, and the
 // output goes to <dir>/merged/. Nothing under <dir> or <dir>/rerun is written.
-// `--no-merge` keeps the first pass on its own.
+// A listed cell with no rerun record at all (an interrupted rerun) is not
+// replaced: it keeps its first pass and is named in summary.merged and on
+// stderr. `--no-merge` keeps the first pass on its own.
 const rerunDir = join(dir, 'rerun');
 const merge = !noMerge && existsSync(join(rerunDir, 'raw')) && existsSync(join(rerunDir, 'cells.txt'));
 const outDir = merge ? join(dir, 'merged') : dir;
-const rerunIds = merge
-  ? new Set(readFileSync(join(rerunDir, 'cells.txt'), 'utf8').split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#')))
-  : new Set();
 const fileCell = (f) => f.split('.')[0];
+const listedIds = merge
+  ? [...new Set(readFileSync(join(rerunDir, 'cells.txt'), 'utf8').split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#')))]
+  : [];
+const rerunRawIds = merge
+  ? new Set(readdirSync(join(rerunDir, 'raw')).filter((f) => f.endsWith('.json')).map(fileCell))
+  : new Set();
+// The cells actually replaced: listed and present in rerun/raw.
+const rerunIds = new Set(listedIds.filter((id) => rerunRawIds.has(id)));
+const missingRerun = listedIds.filter((id) => !rerunRawIds.has(id)).sort();
+if (missingRerun.length) {
+  console.error(`report: ${missingRerun.length} listed rerun cells have no rerun record, first pass kept: ${missingRerun.join(' ')}`);
+}
 
 // ---- raw files ---------------------------------------------------------------
 const reps = [];
@@ -222,12 +233,12 @@ for (const [id, rs] of [...byCell.entries()].sort()) {
   const trig = triggerOf(rs);
   const rerun = trig.gates;
 
-  // spread_persistent: a rerun cell that was a candidate in the first pass
-  // and whose rerun still meets the G4 part of the trigger.
+  // spread_persistent: a rerun cell that met the G4 part of the trigger in the
+  // first pass and still meets it on its rerun.
   const firstPassGates = merge && rerunIds.has(id)
     ? triggerOf([...(firstPassReps.get(id) ?? [])].sort((a, b) => a.round - b.round)).gates
     : null;
-  const persistent = firstPassGates !== null && firstPassGates.length > 0 && rerun.includes('G4');
+  const persistent = firstPassGates !== null && firstPassGates.includes('G4') && rerun.includes('G4');
   if (persistent) flags.push('spread_persistent');
 
   // G6: observer effect (latency fields only).
@@ -395,7 +406,9 @@ const summary = {
         'the first pass is taken as is',
       first_pass_raw: '../raw',
       rerun_raw: '../rerun/raw',
+      listed_cells: listedIds.length,
       replaced_cells: rerunIds.size,
+      missing_rerun_cells: missingRerun,
       raw_files_from_first_pass: rawCount.first_pass,
       raw_files_from_rerun: rawCount.rerun,
     }
@@ -410,10 +423,11 @@ const summary = {
     rerun_trigger: RERUN_RULE,
     rerun_basis: RERUN_BASIS,
     spread_persistent: merge
-      ? 'spread_persistent marks a rerun cell (listed in rerun/cells.txt) that met the rerun trigger in the ' +
-        'first pass and still meets its G4 part (trimmed range) on the rerun data alone. It is added to the ' +
-        'cell\'s flags; the G4 flag thresholds are unchanged. A rerun cell that stays flagged only by the ' +
-        'spread_* flags, or only by G5, is not marked.'
+      ? 'spread_persistent marks a rerun cell (listed in rerun/cells.txt and replaced by its rerun) that met ' +
+        'the G4 part (trimmed range) of the rerun trigger on the first-pass data and still meets it on the ' +
+        'rerun data alone. It is added to the cell\'s flags; the G4 flag thresholds are unchanged. A rerun ' +
+        'cell that stays flagged only by the spread_* flags, that meets G5 only, or whose G4 appears only in ' +
+        'the rerun, is not marked.'
       : undefined,
   },
   thresholds: {

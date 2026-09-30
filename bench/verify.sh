@@ -31,7 +31,10 @@ docker run --rm --network none --read-only --tmpfs /tmp:exec \
   -v "$ROOT:/src:ro" -w /tmp -e GOCACHE=/tmp/cache -e GOTOOLCHAIN=local \
   -e GOPROXY=off -e CGO_ENABLED=1 -e HOME=/tmp \
   "$GO_IMAGE" sh -ec '
-    cp -r /src /tmp/w && cd /tmp/w && chmod -R u+w results 2>/dev/null; rm -rf results
+    cp -r /src /tmp/w
+    cd /tmp/w
+    [ ! -d results ] || chmod -R u+w results
+    rm -rf results
     bad=$(gofmt -l .); [ -z "$bad" ] || { echo "gofmt: $bad"; exit 1; }
     go vet ./...
     go test -race -count=1 ./...

@@ -6,7 +6,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync } from 
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { trimOutlier, rangeRatio, rerunTrigger, RERUN_BASIS } from './gates.mjs';
 
 const TICK = 41;
@@ -203,13 +203,70 @@ test('report.mjs: a cell rerun is merged into merged/, spread_persistent marks w
   assert.deepEqual(by[KEPT].flags, ['spread_throughput'], 'not rerun: never persistent');
   assert.deepEqual(s.gates.spread_persistent, { count: 1, by_p: { P2: 1 }, cells: [STILL] });
   assert.equal(s.gates.flag_counts.spread_persistent, 1);
-  assert.match(s.method.spread_persistent, /first pass/);
+  assert.match(s.method.spread_persistent, /G4 part .* first-pass data/);
   assert.match(s.method.spread_persistent, /thresholds are unchanged/);
   assert.equal(s.thresholds.G4_throughput_spread, 0.10, 'flag thresholds unchanged');
   assert.equal(s.thresholds.G4_p99_spread, 0.25, 'flag thresholds unchanged');
   const list = readFileSync(join(dir, 'merged', 'rerun-cells.txt'), 'utf8').split('\n').filter((l) => l && !l.startsWith('#'));
   assert.deepEqual(list, [G5ONLY, STILL]);
   assert.match(readFileSync(join(dir, 'merged', 'summary.csv'), 'utf8'), /spread_throughput;spread_persistent/);
+});
+
+const P99ONLY = 's2-mutex-g4-p8-w0'; // p99 spread only, in both passes
+const G5TOG4 = 's2-chan-g4-p8-w0'; // G5 in the first pass, G4 only on the rerun
+const MISSING = 's2-atomic-g4-p8-w0'; // listed for the rerun, no rerun record
+function setDrift(rawDir, id, rounds, drift) {
+  for (const r of rounds) {
+    const f = join(rawDir, `${id}.r${r}.json`);
+    const rec = JSON.parse(readFileSync(f, 'utf8'));
+    rec.calib.drift = drift;
+    writeFileSync(f, JSON.stringify(rec));
+  }
+}
+
+test('report.mjs: persistence needs G4 in both passes; a listed cell without a rerun keeps its first pass', () => {
+  const dir = mergedFixture();
+  const flat = [100, 101, 102, 100, 100];
+  const p99 = [1000, 1600, 1000, 1700, 1000];
+  writeCell(join(dir, 'raw'), P99ONLY, 8, flat, p99);
+  writeCell(join(dir, 'rerun/raw'), P99ONLY, 8, flat, p99);
+  writeCell(join(dir, 'raw'), G5TOG4, 8, flat);
+  setDrift(join(dir, 'raw'), G5TOG4, [1, 2], 0.08);
+  writeCell(join(dir, 'rerun/raw'), G5TOG4, 8, [100, 125, 100, 135, 100]);
+  writeCell(join(dir, 'raw'), MISSING, 8, [100, 125, 100, 135, 100]);
+  writeFileSync(join(dir, 'rerun/cells.txt'), [STILL, CLEAN, G5ONLY, P99ONLY, G5TOG4, MISSING].join('\n') + '\n');
+
+  const run = spawnSync(process.execPath, [REPORT, dir], { encoding: 'utf8' });
+  assert.equal(run.status, 0, run.stderr);
+  assert.match(run.stdout, /merged 5 rerun cells, 2 spread_persistent/);
+  assert.match(run.stderr, new RegExp(`1 listed rerun cells have no rerun record.*${MISSING}`));
+  const s = JSON.parse(readFileSync(join(dir, 'merged', 'summary.json'), 'utf8'));
+  const by = Object.fromEntries(s.cells.map((c) => [c.cell_id, c]));
+
+  assert.equal(s.cells_measured, 7);
+  assert.deepEqual({
+    listed: s.merged.listed_cells, replaced: s.merged.replaced_cells, missing: s.merged.missing_rerun_cells,
+    first: s.merged.raw_files_from_first_pass, rerun: s.merged.raw_files_from_rerun,
+  }, { listed: 6, replaced: 5, missing: [MISSING], first: 10, rerun: 25 });
+
+  // p99-only spread persists through the G4 p99 part of the trigger.
+  assert.deepEqual(by[P99ONLY].first_pass_rerun_gates, ['G4']);
+  assert.deepEqual(by[P99ONLY].rerun_gates, ['G4']);
+  assert.ok(by[P99ONLY].flags.includes('spread_persistent'));
+  assert.equal(by[P99ONLY].flags.includes('spread_throughput'), false);
+
+  // G5 in the first pass, G4 only on the rerun: not a persisting spread.
+  assert.deepEqual(by[G5TOG4].first_pass_rerun_gates, ['G5']);
+  assert.deepEqual(by[G5TOG4].rerun_gates, ['G4']);
+  assert.equal(by[G5TOG4].flags.includes('spread_persistent'), false);
+
+  // Listed but never rerun: first-pass data, not counted as replaced.
+  assert.equal(by[MISSING].source, 'first_pass');
+  assert.equal(by[MISSING].first_pass_rerun_gates, null);
+  assert.equal(by[MISSING].throughput.max, 135);
+  assert.equal(by[MISSING].flags.includes('spread_persistent'), false);
+
+  assert.deepEqual(s.gates.spread_persistent.cells, [P99ONLY, STILL].sort());
 });
 
 test('report.mjs --no-merge: the first pass alone, as before the rerun', () => {

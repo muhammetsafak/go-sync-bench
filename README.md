@@ -133,9 +133,11 @@ results/<stamp>` reads the first pass merged with the rerun: every cell listed
 in `rerun/cells.txt` is replaced entirely by its rerun (raw and timing), the
 rest of the first pass is taken as is, and `summary.json`, `summary.csv` and
 `rerun-cells.txt` are written to `results/<stamp>/merged/`; the first pass and
-the rerun are only read. `summary.merged` records the file counts. A rerun
-cell that was a candidate in the first pass and still meets the G4 part of
-the trigger on its rerun gets the `spread_persistent` flag (definition under
+the rerun are only read. `summary.merged` records the file counts; a listed
+cell with no rerun record keeps its first pass and is named in
+`summary.merged.missing_rerun_cells` (and on stderr). A rerun cell that met
+the G4 part of the trigger in the first pass and still meets it on its rerun
+gets the `spread_persistent` flag (definition under
 `method.spread_persistent`, list under `gates.spread_persistent`); the flag
 thresholds do not change. `--no-merge` summarises the first pass alone.
 
