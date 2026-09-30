@@ -29,14 +29,21 @@ single definition of the windows, the cpusets and both cell sets:
 ./bench/verify.sh                          # acceptance: vet, race tests, self-test x5, smoke run, report
 ./bench/run.sh --smoke                     # smoke set only
 STAMP=$(date -u +%F) ./bench/run.sh --all  # main matrix; resumable with --resume
-STAMP=<stamp> ./bench/run.sh --cells results/<stamp>/rerun-cells.txt
+STAMP=<stamp> caffeinate -dimsu ./bench/run.sh --cells results/<stamp>/rerun-cells.txt
                                            # rerun the listed cells into results/<stamp>/rerun/
 docker run --rm --network none --read-only --tmpfs /tmp --user 65534:65534 \
   --cap-drop ALL --security-opt no-new-privileges \
   -v "$PWD/bench:/bench:ro" -v "$PWD/results/<stamp>:/results" \
+  -v "$PWD/results/<stamp>/raw:/results/raw:ro" \
+  -v "$PWD/results/<stamp>/rerun:/results/rerun:ro" \
   node:24-trixie-slim node /bench/report.mjs /results
-                                           # summary.json, summary.csv, rerun-cells.txt
+                                           # summary.json, summary.csv, rerun-cells.txt;
+                                           # merged/ as well once rerun/ exists
 ```
+
+`caffeinate -dimsu` (macOS) keeps the host awake. `run.sh` also refuses to
+start unless `pmset` shows `sleep 0` (gate E2). The `:ro` mounts keep the raw data read-only while
+the report writes its summaries. Omit the `rerun` mount before a rerun exists.
 
 Nothing is run on the host except Docker, `ps`, `pmset` and `jq`. Build,
 vet, tests, self-test and every measurement run in containers with **no
@@ -197,6 +204,51 @@ harness does not. Every cell carries `quantum_bound` (b, and the unclamped
 `quantum_bound_raw`), `expected_quantum_jain` and the measured `jain` side
 by side, in `summary.json` and `cells.csv`; reading them is left to the
 reader.
+
+## Results — 2026-09-29
+
+The published run is `results/2026-09-29/`. `RUN.md` there has the full
+environment record, round by round.
+
+- **Scope.** The `main` set: 845 cells x 5 rounds (S1/S2/S3 = 365/288/192
+  cells), seed `932269622`, P groups 1/2/4/8. It ran on one host: Apple M4 Pro,
+  12 CPUs, Docker 29.8.0, go1.27.1, on AC power, with no thermal warnings. The
+  first pass ran 2026-09-29 and the rerun 2026-09-30 01:38-02:31Z.
+- **Images.** The first pass used `sha256:640a046f219a…`. The rerun used
+  `sha256:eabc1573265a…`. Only orchestration changed between them
+  (`cmd/syncbench`, `bench/run.sh`: `--cells`, `rerun_of`, the sleep check).
+  `internal/`, where the measurement runs, and `docker/` did not change.
+- **Published data:** `results/2026-09-29/merged/summary.json` and
+  `summary.csv`. They combine the first pass with a one-time rerun of 88
+  cells. A rerun cell takes all 5 repetitions from `rerun/raw` and replaces
+  the whole cell; each cell's `source` says which pass it comes from. The
+  first pass alone is in `results/2026-09-29/summary.json` and `raw/`. Nothing
+  is deleted.
+- **Rerun rule (user decision 2026-09-29, option E).** The design's trigger,
+  full range with the G4 thresholds, chose **294 cells (G4 290, G5 11)** on
+  the first pass. That is more than the 84-cell rerun budget. The numbers are
+  in the first-pass `summary.json` `gates.rerun_v1`. The rerun was triggered
+  instead by the trimmed range (drop the highest and lowest repetition) over
+  the G4 threshold, plus G5, with the budget raised to 88. The flag
+  thresholds did not change: `spread_throughput` above 0.10,
+  `spread_p99` above 0.25. `gates.rerun_v1` in the merged summary (273) is the
+  same trigger recomputed on the merged data; it is not the original result.
+  `method` in the summary gives the rules; this paragraph gives the reason.
+  The spread floor of this host is wider than the design assumed, and the
+  user chose this rule over publishing all 294 as flagged or repeating the
+  full run.
+- **Confidence.** 518 of the 845 cells carry at least one flag, so
+  `confidence_suggestion` is `low`. A flagged cell is published with its
+  flag, not dropped. Rank flagged cells lower.
+- **`spread_persistent`.** 36 cells met the G4 part of the trigger on the
+  first pass and still met it on the rerun (P1 11, P2 18, P4 1, P8 6). Cells
+  are rerun once only. Do not build a claim on these cells alone.
+- `gates.rerun_count` / `gates.rerun_cells` (36) count the cells still over
+  the trigger after the rerun, not the cells that were rerun. The number
+  rerun is `merged.replaced_cells` (88).
+- **Host sleep.** The host slept once during the first pass (11:45-11:59Z).
+  `RUN.md` names the repetition that spans the sleep
+  (`s1-chan_oneway-g64-p1-w0` r3) and the repetitions around it.
 
 ## Limits
 

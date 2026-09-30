@@ -1,0 +1,11 @@
+{"cell_id":"s3-cond1024-g4-p8-w1000","round":5,"attempt":1,"wall_s":4.413836377,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s1-atomic-g1024-p8-w0","round":5,"attempt":1,"wall_s":4.445127919,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s2-rwmutex-r50-g10000-p8-w0","round":5,"attempt":1,"wall_s":4.435001211,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s3-cond1024-g4-p8-w0","round":5,"attempt":1,"wall_s":4.405988711,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s2-chan_owner-r50-g64-p8-w0","round":5,"attempt":1,"wall_s":4.37739196,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s3-cond1024-g1024-p8-w1000","round":5,"attempt":1,"wall_s":4.385341252,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s1-chan_oneway-g256-p8-w0","round":5,"attempt":1,"wall_s":4.379189502,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s2-rwmutex-r99-g10000-p8-w1000","round":5,"attempt":1,"wall_s":4.472237502,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s3-chan64-g10000-p8-w0","round":5,"attempt":1,"wall_s":4.419396502,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s2-rwmutex-r99-g64-p8-w0","round":5,"attempt":1,"wall_s":4.379940502,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s3-chan0-g10000-p8-w1000","round":5,"attempt":1,"wall_s":4.422439544,"exit":0,"valid":true,"over_budget":false}

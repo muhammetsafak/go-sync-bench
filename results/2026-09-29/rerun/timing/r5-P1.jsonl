@@ -1,0 +1,17 @@
+{"cell_id":"s1-rwmutex-g10000-p1-w0","round":5,"attempt":1,"wall_s":4.415804544,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s2-rwmutex-r99-g64-p1-w0","round":5,"attempt":1,"wall_s":4.380402001,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s2-mutex-r90-g64-p1-w0","round":5,"attempt":1,"wall_s":4.389150752,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s2-rwmutex-r99-g1024-p1-w1000","round":5,"attempt":1,"wall_s":4.371376085,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s2-mutex-r50-g64-p1-w0","round":5,"attempt":1,"wall_s":4.3890531280000005,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s1-mutex-g10000-p1-w0","round":5,"attempt":1,"wall_s":4.42630021,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s1-rwmutex-g16-p1-w0","round":5,"attempt":1,"wall_s":4.388870377,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s1-mutex-g1024-p1-w0","round":5,"attempt":1,"wall_s":4.389430752,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s1-mutex-g16-p1-w0","round":5,"attempt":1,"wall_s":4.388661002,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s1-mutex-g64-p1-w0","round":5,"attempt":1,"wall_s":4.388927544,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s3-cond64-g4-p1-w0","round":5,"attempt":1,"wall_s":4.365406127,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s2-rwmutex-r99-g10000-p1-w0","round":5,"attempt":1,"wall_s":4.397885961,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s1-rwmutex-g64-p1-w0","round":5,"attempt":1,"wall_s":4.399503211,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s2-mutex-r90-g1024-p1-w0","round":5,"attempt":1,"wall_s":4.389461836,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s2-chan_owner-r99-g10000-p1-w0","round":5,"attempt":1,"wall_s":4.393303419,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s2-mutex-r99-g64-p1-w0","round":5,"attempt":1,"wall_s":4.40006946,"exit":0,"valid":true,"over_budget":false}
+{"cell_id":"s2-mutex-r99-g1024-p1-w0","round":5,"attempt":1,"wall_s":4.388931502,"exit":0,"valid":true,"over_budget":false}

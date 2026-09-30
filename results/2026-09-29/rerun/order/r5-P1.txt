@@ -1,0 +1,18 @@
+seed=3652243538 round=5 P=1
+s1-rwmutex-g10000-p1-w0
+s2-rwmutex-r99-g64-p1-w0
+s2-mutex-r90-g64-p1-w0
+s2-rwmutex-r99-g1024-p1-w1000
+s2-mutex-r50-g64-p1-w0
+s1-mutex-g10000-p1-w0
+s1-rwmutex-g16-p1-w0
+s1-mutex-g1024-p1-w0
+s1-mutex-g16-p1-w0
+s1-mutex-g64-p1-w0
+s3-cond64-g4-p1-w0
+s2-rwmutex-r99-g10000-p1-w0
+s1-rwmutex-g64-p1-w0
+s2-mutex-r90-g1024-p1-w0
+s2-chan_owner-r99-g10000-p1-w0
+s2-mutex-r99-g64-p1-w0
+s2-mutex-r99-g1024-p1-w0
