@@ -39,7 +39,37 @@ docker run --rm --network none --read-only --tmpfs /tmp --user 65534:65534 \
   node:24-trixie-slim node /bench/report.mjs /results
                                            # summary.json, summary.csv, rerun-cells.txt;
                                            # merged/ as well once rerun/ exists
+                                           # report.mjs [--headline FILE] [--second-run PATH]
+                                           # adds the confidence conditions (below)
+docker run --rm --network none --read-only --user 65534:65534 \
+  --cap-drop ALL --security-opt no-new-privileges \
+  -v "$PWD/bench:/bench:ro" -v "$PWD/results:/results:ro" \
+  node:24-trixie-slim node /bench/compare-runs.mjs \
+  [--headline /results/<a>/headline.txt] /results/<a> /results/<b>
+                                           # second run vs first, cell by cell, ±5 %
 ```
+
+Linux bare-metal profile (`linux-metal`, see Protocol), on the target host:
+
+```sh
+sudo BENCH_HOST_PREP_CONFIRM=1 ./bench/host-prep.sh   # once: GRUB isolation, CPUAffinity, tune unit; then reboot
+sudo BENCH_HOST_PREP_CONFIRM=1 ./bench/host-prep.sh --runtime   # re-apply the runtime tunables only
+sudo BENCH_HOST_PREP_CONFIRM=1 ./bench/host-prep.sh --revert    # undo everything prepare installed; exit 1 if a step failed
+./bench/host-check.sh [--out FILE] [--phase NAME] [--skip-load] # gate E2 for linux-metal; exit 0 pass, 1 fail, 2 not Linux
+BENCH_PROFILE=linux-metal ./bench/run.sh --smoke
+STAMP=$(date -u +%F) BENCH_PROFILE=linux-metal ./bench/run.sh --all
+```
+
+`host-prep.sh` changes the host (boot parameters, systemd, services) and
+refuses to run without `BENCH_HOST_PREP_CONFIRM=1`, root and Linux; it is
+never run on a development machine. Before writing anything it checks the
+topology (every profile CPU exists, the isolated and system sets each sit on
+their own L3 domain, no SMT sibling inside them). If `update-grub` fails, or
+`grub.cfg` lacks the new parameters, it removes its drop-in and regenerates
+GRUB before it stops. It records the state of the sleep targets before
+masking them, and `--revert` unmasks only what it masked; `--revert` runs
+every step even when one fails and exits 1 if any did. On linux-metal the host needs only Docker
+and `jq`; `host-check.sh` reads `/proc` and `/sys` and changes nothing.
 
 `caffeinate -dimsu` (macOS) keeps the host awake. `run.sh` also refuses to
 start unless `pmset` shows `sleep 0` (gate E2). The `:ro` mounts keep the raw data read-only while
@@ -54,11 +84,28 @@ build itself is offline (`docker build --network none`) once
 
 ## Protocol
 
-**Budget.** The Docker VM has 12 vCPUs. vCPU 0-3 stay with the VM kernel and
+**Budget** (profile `macos`, the default). The Docker VM has 12 vCPUs. vCPU 0-3 stay with the VM kernel and
 dockerd; a P container is pinned to `P1=4`, `P2=4-5`, `P4=4-7`, `P8=4-11`
 with `GOMAXPROCS=P`, 4 GiB of memory and no swap. Gate G2 checks inside the
 container that the cpuset and `GOMAXPROCS` are what the run asked for; a
 mismatch stops the run.
+
+**Budget, linux-metal.** Bare metal, Ryzen 9 5950X with SMT off (16
+cores, two CCDs). CCD0 (CPU 0-7) keeps the kernel, IRQs, systemd and
+dockerd (`irqaffinity=0-7`, systemd `CPUAffinity=0-7`); CCD1 (CPU 8-15) is
+reserved for the containers with `isolcpus=managed_irq,8-15`,
+`nohz_full=8-15` and `rcu_nocbs=8-15`. `managed_irq` keeps managed
+interrupts off CCD1 without removing it from the scheduler domains, so
+`/sys/devices/system/cpu/isolated` stays empty and the container's cpuset
+is honoured. A P container is pinned to `P1=8`, `P2=8-9`, `P4=8-11`,
+`P8=8-15` (`profiles["linux-metal"]` in `matrix.json`), so every cell runs
+on one CCD and shares one L3. The CPU governor is `performance` (with
+amd-pstate EPP also `performance`, read back after writing), boost is off,
+and every movable IRQ, the default IRQ affinity and the unbound workqueues
+stay on CPU 0-7; `host-prep.sh` sets them and `bench-host-tune.service`
+re-applies them at every boot, before docker. Sleep targets are masked and
+unattended-upgrades, snapd, apt-daily, fwupd, motd-news and irqbalance are
+stopped. THP, NUMA balancing and cpuidle are recorded, not changed.
 
 **Order.** A round runs every cell once; a cell's repetitions are always in
 different rounds, never back to back. Each round is shuffled at two levels
@@ -70,7 +117,7 @@ its own process, so rusage, `runtime/metrics` and the heap start clean. A
 repetition has a 0.5 s warm-up, a 1.5 s throughput window and a 2.0 s
 latency window (≈ 4.4 s wall in total, budget 5 s).
 
-**Host gates.** E2 before the run and every round: system sleep disabled
+**Host gates** (`macos`). E2 before the run and every round: system sleep disabled
 (`pmset -g` shows `sleep 0`; otherwise `run.sh` exits 6 and names the fix,
 `sudo pmset -c sleep 0`), AC power and no recorded thermal or CPU speed
 warning (`pmset`). A `caffeinate` assertion does not count: it ends with its
@@ -78,6 +125,47 @@ process. The smoke run records the sleep setting but does not enforce it. E1 aft
 (60 s, 5 s for smoke), then the summed CPU of host processes outside the
 Docker VM must be below one core, waiting at most 10 minutes. The smoke run
 records E1 but does not wait for it.
+
+**Host gates, linux-metal.** E2 is `host-check.sh`: the profile's cpusets
+on one L3 domain, SMT off, `isolcpus`/`nohz_full`, PID 1 affined to CPU
+0-7, governor/EPP, boost off, no movable IRQ on CCD1, not a virtual machine
+(`systemd-detect-virt`, the `hypervisor` CPU flag), sleep targets masked,
+background services inactive, Docker not the snap, and the 1-minute load
+average. An IRQ counts as kept off CCD1 by `managed_irq` only when its
+requested affinity, limited to online CPUs, lies on CCD1 and the kernel does
+not report it as unmanaged (`/sys/kernel/debug/irq`, readable as root; without
+root the record says `managed: null`, and the check notes it). Kernel, microcode, THP, cgroup version and k10temp temperatures
+are recorded. It runs before the run
+(with the load check), before every round and at the end (without it);
+each record is kept under `results/<stamp>/host-check/`. The start record
+becomes `environment.json`, the end result is merged into it as `.end`. A
+failed check stops the run with exit 7 (`HOST_CHECK_ENFORCE=0` only logs
+it, for a dry run; such a run cannot reach `high`). E1 reads the host load
+from `/proc/stat` instead of `ps`, the same rule. `pmset` is not used.
+
+**Confidence.** `report.mjs` suggests `low` when more than 15 % of the
+cells are flagged, when any cell has fewer than 5 valid repetitions
+(ADR-0050), or when a run directory has no environment record
+(`environment.json` or `RUN.md`). It suggests `high` only when every condition holds,
+otherwise `medium`, and lists what is missing:
+
+- at least 5 repetitions per cell (median, IQR and min–max are reported);
+- at most 5 % of the cells flagged, and no headline cell flagged;
+- `environment.json` and every host-check record passed (start, rounds, end);
+- noise floor: every headline pair (`--headline FILE`, one comparison per
+  line: `<cellA> <cellB> <ops|p99>`) differs in that metric by at least 3 ×
+  the spread ((max−min)/median) of the same metric in the noise-floor cell
+  (s1 atomic, W=0, 2 ≤ G ≤ P) at the same P. A line without a metric, or a
+  p99 below the clock resolution, does not count. The noise-floor cell
+  needs 2 ≤ G ≤ P, so the matrix has one at P=2 (G=2), P=4 and P=8 but none
+  at P=1: a headline with a P=1 cell cannot reach `high`;
+- second run (`--second-run PATH`): every headline number (or every cell
+  without a headline file) within ±5 % (`compare-runs.mjs`; a p99 below
+  the clock resolution in one run only is incomparable and fails), on another
+  boot (`boot_id`) and another day, and that run's environment passed too.
+
+Open data (the raw records published with the result) is not something the
+tool can check; it stays a publishing step.
 
 **Busy work W.** An xorshift loop in a `//go:noinline` function. Its speed
 is calibrated inside the repetition, **with all P workers spinning in
@@ -163,6 +251,8 @@ results/<stamp>/
   rerun-cells.txt        rerun candidates, the input of run.sh --cells
   rerun/                 a cell rerun: the same layout, plus cells.txt and rerun_of.json
   merged/                report of the first pass merged with rerun/ (summary.*, rerun-cells.txt)
+  environment.json       linux-metal: the start host-check record, .end merged in at the end
+  host-check/<time>-<phase>.json  linux-metal: every E2 record (start, round-<n>, end)
 ```
 
 ### Raw record

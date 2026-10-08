@@ -3,7 +3,7 @@
 // design evaluated per cell. Raw files are never modified; the report can be
 // re-run at any time.
 //
-//   node bench/report.mjs [--no-merge] results/<stamp>
+//   node bench/report.mjs [--no-merge] [--headline FILE] [--second-run PATH] results/<stamp>
 //
 // With a cell rerun in results/<stamp>/rerun/, the report reads the first pass
 // merged with the rerun and writes to results/<stamp>/merged/ (see "inputs"
@@ -18,19 +18,55 @@
 // again is decided by the rule of gates.mjs (G4 v2, trimmed range) plus G5.
 // The candidates are written to rerun-cells.txt, the input of
 // `./bench/run.sh --cells`. summary.method states all of it in words.
+//
+// Confidence (ADR-0050, class T): `low` when more than 15 % of the cells failed
+// a soft gate, when any cell has fewer than 5 valid repetitions, or when a run
+// directory has no environment record (environment.json or RUN.md); `high` only when every condition below holds, `medium`
+// otherwise. The conditions, and which of them are missing, are written to
+// summary.gates.confidence_conditions / confidence_missing:
+//   repetitions   every cell has at least 5 valid repetitions
+//   flagged_share at most 5 % of the cells failed a soft gate, and no headline
+//                 cell did
+//   environment   environment.json (linux-metal profile, run.sh) passed
+//                 host-check at the start and at the end, and every record
+//                 under host-check/ passed; for a merged report, the rerun's
+//                 as well
+//   noise_floor   every headline comparison (--headline, a line
+//                 "<cellA> <cellB> <ops|p99>") differs in that metric by at
+//                 least 3x the repetition spread of the same metric in the
+//                 noise floor cell (s1 atomic, W=0, 2 <= G <= P) at its P
+//   second_run    --second-run PATH (summary.json or result directory of an
+//                 independent run: another day, another boot) repeats the
+//                 headline numbers within ±5 % (bench/compare-runs.mjs)
+// Open data (condition 6) is a publishing step and is not checked here.
 import { readFileSync, readdirSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { compareSummaries, readHeadline, readSummary, SECOND_RUN_TOLERANCE } from './compare-runs.mjs';
 import {
   RERUN_BASIS, RERUN_TPUT, RERUN_P99, RERUN_DRIFT_REPS, RERUN_RESOLUTION_FACTOR, RERUN_RULE, rerunTrigger,
 } from './gates.mjs';
 
-const args = process.argv.slice(2);
-const noMerge = args.includes('--no-merge');
-const dir = args.find((a) => !a.startsWith('--'));
-if (!dir) {
-  console.error('usage: node bench/report.mjs [--no-merge] <results-dir>');
+const usage = () => {
+  console.error('usage: node bench/report.mjs [--no-merge] [--headline FILE] [--second-run PATH] <results-dir>');
   process.exit(2);
+};
+const args = process.argv.slice(2);
+let noMerge = false;
+let headlineFile = null;
+let secondRunPath = null;
+let dir = null;
+for (let i = 0; i < args.length; i++) {
+  const a = args[i];
+  if (a === '--no-merge') noMerge = true;
+  else if (a === '--headline' || a === '--second-run') {
+    if (i + 1 >= args.length) usage();
+    if (a === '--headline') headlineFile = args[++i];
+    else secondRunPath = args[++i];
+  } else if (a.startsWith('--')) usage();
+  else if (dir === null) dir = a;
+  else usage();
 }
+if (!dir) usage();
 
 // Thresholds of the design (gates G4-G9 and the fairness attribution).
 const G4_TPUT = 0.10;
@@ -43,6 +79,10 @@ const G9_TAIL = 0.01;
 const SLOW_SHARE = 0.5;
 const REP_BUDGET_S = 5;
 const LOW_CONFIDENCE_SHARE = 0.15;
+// The `high` branch (ADR-0050, class T).
+const HIGH_FLAGGED_SHARE = 0.05;
+const HIGH_MIN_REPS = 5;
+const HIGH_NOISE_FACTOR = 3;
 
 const readJSON = (p) => JSON.parse(readFileSync(p, 'utf8'));
 const matrix = existsSync(join(dir, 'matrix.json')) ? readJSON(join(dir, 'matrix.json')) : null;
@@ -59,6 +99,22 @@ const max = (xs) => (nums(xs).length ? Math.max(...nums(xs)) : null);
 const spread = (xs) => {
   const m = median(xs);
   return m ? (max(xs) - min(xs)) / m : null;
+};
+// Quantile of the valid values, linear interpolation between order statistics
+// (type 7, the default of R and NumPy).
+const quantile = (xs, q) => {
+  const v = nums(xs).sort((a, b) => a - b);
+  if (v.length === 0) return null;
+  const h = (v.length - 1) * q;
+  const lo = Math.floor(h);
+  return v[lo] + (h - lo) * ((v[Math.min(lo + 1, v.length - 1)]) - v[lo]);
+};
+// Median and interquartile range; iqr_rel is the IQR over the median.
+const iqrOf = (xs) => {
+  const m = median(xs);
+  const q1 = quantile(xs, 0.25);
+  const q3 = quantile(xs, 0.75);
+  return { median: m, q1, q3, iqr: q1 === null ? null : q3 - q1, iqr_rel: m ? (q3 - q1) / m : null };
 };
 const round = (x, d = 4) => (x === null || x === undefined ? null : Number(x.toFixed(d)));
 const get = (o, path) => path.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
@@ -194,8 +250,10 @@ function percentile(rs, hist, q) {
   const m = median(vals);
   const floor = G8_FACTOR * (median(rs.map((r) => r.env?.clock_resolution_ns)) ?? 0);
   if (m === null) return { value: null, dropped_g7: dropped };
-  if (m < floor) return { value: `< ${Math.round(floor)} ns`, below_resolution: true, spread: round(spread(vals)) };
-  return { value: Math.round(m), spread: round(spread(vals)), dropped_g7: dropped || undefined };
+  const qs = iqrOf(vals);
+  const iqr = { q1: round(qs.q1, 1), q3: round(qs.q3, 1), iqr: round(qs.iqr, 1), iqr_rel: round(qs.iqr_rel) };
+  if (m < floor) return { value: `< ${Math.round(floor)} ns`, below_resolution: true, spread: round(spread(vals)), ...iqr };
+  return { value: Math.round(m), spread: round(spread(vals)), ...iqr, dropped_g7: dropped || undefined };
 }
 
 function triggerOf(rs) {
@@ -218,6 +276,7 @@ for (const [id, rs] of [...byCell.entries()].sort()) {
 
   // G4: spread of throughput and of op_latency p99.
   const tSpread = spread(ops);
+  const tIqr = iqrOf(ops);
   const p99s = rs.map((r) => r.latency?.op_latency_hist?.p99);
   const pSpread = spread(p99s);
   if (rs.length >= 2 && tSpread !== null && tSpread > G4_TPUT) flags.push('spread_throughput');
@@ -290,6 +349,11 @@ for (const [id, rs] of [...byCell.entries()].sort()) {
       min: round(min(ops), 1),
       max: round(max(ops), 1),
       spread: round(tSpread),
+      median: round(tIqr.median, 1),
+      q1: round(tIqr.q1, 1),
+      q3: round(tIqr.q3, 1),
+      iqr: round(tIqr.iqr, 1),
+      iqr_rel: round(tIqr.iqr_rel),
       best_ops_per_sec: round(max(ops), 1),
       ns_per_op: round(median(rs.map((r) => r.throughput?.ns_per_op)), 2),
       cpu_per_op_ns: round(median(rs.map((r) => r.throughput?.cpu_per_op_ns)), 2),
@@ -390,6 +454,242 @@ const rerunOfPath = join(merge ? rerunDir : dir, 'rerun_of.json');
 const rerunOf = existsSync(rerunOfPath) ? readJSON(rerunOfPath) : null;
 const persistentCells = cells.filter((c) => c.flags.includes('spread_persistent'));
 
+// ---- environment (linux-metal: environment.json + host-check/) ------------------
+// One run directory (the first pass, or the rerun): its start record, its end
+// record and every host-check record of the run.
+function readEnvironment(base, label) {
+  const envPath = join(base, 'environment.json');
+  if (!existsSync(envPath)) return { run: label, present: false, passed: false, problems: [`${label}: no environment.json`] };
+  const env = readJSON(envPath);
+  const problems = [];
+  if (env.host_check?.passed !== true) problems.push(`${label}: host-check at the start failed (${(env.host_check?.failed ?? []).join(', ')})`);
+  if (!env.end) problems.push(`${label}: no host-check record after the last round (environment.json has no .end)`);
+  else if (env.end.host_check?.passed !== true) problems.push(`${label}: host-check after the last round failed (${(env.end.host_check?.failed ?? []).join(', ')})`);
+  const records = [];
+  const hcDir = join(base, 'host-check');
+  if (existsSync(hcDir)) {
+    for (const f of readdirSync(hcDir).filter((x) => x.endsWith('.json')).sort()) {
+      let rec;
+      try {
+        rec = readJSON(join(hcDir, f));
+      } catch {
+        rec = null;
+      }
+      const passed = rec?.host_check?.passed === true;
+      records.push({ file: f, phase: rec?.phase ?? null, passed });
+      if (!passed) problems.push(`${label}: host-check/${f} failed or unreadable`);
+    }
+  }
+  if (!records.length) problems.push(`${label}: no host-check/ records`);
+  return {
+    run: label,
+    present: true,
+    passed: problems.length === 0,
+    profile: env.profile ?? null,
+    checked_at: env.checked_at ?? null,
+    boot_id: env.host?.boot_id ?? null,
+    cpu_model: env.host?.cpu_model ?? null,
+    kernel: env.host?.kernel ?? null,
+    cmdline_params: env.host?.cmdline_params ?? null,
+    temperature_start: env.temperature?.celsius ?? null,
+    temperature_end: env.end?.temperature?.celsius ?? null,
+    records: records.length,
+    failed_records: records.filter((r) => !r.passed).map((r) => r.file),
+    problems,
+  };
+}
+const environments = [readEnvironment(dir, merge ? 'first pass' : 'run')];
+if (merge) environments.push(readEnvironment(rerunDir, 'rerun'));
+const environment = {
+  passed: environments.every((e) => e.passed),
+  runs: environments,
+};
+
+// ---- confidence (ADR-0050, class T) ----------------------------------------------
+let headline = null;
+if (headlineFile) {
+  try {
+    headline = readHeadline(headlineFile);
+  } catch (e) {
+    console.error(`report: ${e.message}`);
+    process.exit(2);
+  }
+}
+const cellById = new Map(cells.map((c) => [c.cell_id, c]));
+const gateFailing = (c) => c.flags.some((f) => f !== 'missing_reps');
+const conditions = {};
+
+// repetitions: every cell >= 5 valid repetitions.
+{
+  const few = cells.filter((c) => c.reps < HIGH_MIN_REPS);
+  conditions.repetitions = {
+    ok: cells.length > 0 && few.length === 0,
+    min_reps: HIGH_MIN_REPS,
+    cells_below: few.length,
+    detail: few.length ? `${few.length} cells have fewer than ${HIGH_MIN_REPS} valid repetitions` : `every cell has >= ${HIGH_MIN_REPS}`,
+  };
+}
+
+// flagged_share: <= 5 % of the cells failed a soft gate; no headline cell did.
+{
+  const share = cells.length ? gateFailed / cells.length : null;
+  const flaggedHeadline = headline ? headline.cells.filter((id) => cellById.has(id) && gateFailing(cellById.get(id))) : [];
+  const ok = share !== null && share <= HIGH_FLAGGED_SHARE && flaggedHeadline.length === 0;
+  conditions.flagged_share = {
+    ok,
+    value: share === null ? null : round(share),
+    limit: HIGH_FLAGGED_SHARE,
+    flagged_headline_cells: flaggedHeadline,
+    detail: share === null
+      ? 'no cells'
+      : `${gateFailed}/${cells.length} cells (${(share * 100).toFixed(1)} %) failed a soft gate, limit ${HIGH_FLAGGED_SHARE * 100} %` +
+        (flaggedHeadline.length ? `; headline cells flagged: ${flaggedHeadline.join(' ')}` : ''),
+  };
+}
+
+// environment: host-check passed for every run directory of the report.
+conditions.environment = {
+  ok: environment.passed,
+  detail: environment.passed
+    ? 'host-check passed at the start, every round and the end'
+    : environments.flatMap((e) => e.problems).join('; '),
+};
+
+// noise_floor: each headline comparison differs by >= 3x the noise spread of
+// the metric it compares. A headline line names the metric (`ops` or `p99`);
+// `ops` is set against the throughput spread of the noise floor cell, `p99`
+// against the spread of its op_latency p99. Both spreads are the full range
+// over the median ((max-min)/median, the G4 definition), which is stricter than
+// the IQR. A p99 below the clock resolution ("< X ns") has no value to compare.
+{
+  const METRIC = {
+    ops: { name: 'throughput', value: (c) => c.throughput.ops_per_sec, spread: (c) => c.throughput.spread },
+    p99: { name: 'op_latency p99', value: (c) => c.latency.op_p99.value, spread: (c) => (c.latency.op_p99.below_resolution ? null : c.latency.op_p99.spread ?? null) },
+  };
+  const noiseCell = (p) => {
+    const n = noiseFloor[`P${p}`];
+    return n ? cellById.get(n.cell_id) ?? null : null;
+  };
+  const comparisons = [];
+  const problems = [];
+  if (!headline) problems.push('no headline given (--headline FILE)');
+  else if (!headline.pairs.length) problems.push('the headline file has no comparison (a line "<cellA> <cellB> <ops|p99>")');
+  for (const { a, b, metric, line } of headline?.pairs ?? []) {
+    const ca = cellById.get(a);
+    const cb = cellById.get(b);
+    if (!metric) {
+      comparisons.push({ a, b, metric: null, ok: false });
+      problems.push(`line ${line}: ${a} vs ${b}: metric not given (ops|p99)`);
+      continue;
+    }
+    if (!ca || !cb) {
+      comparisons.push({ a, b, metric, ok: false });
+      problems.push(`${a} vs ${b} (${metric}): cell not measured`);
+      continue;
+    }
+    const m = METRIC[metric];
+    const va = m.value(ca);
+    const vb = m.value(cb);
+    if (typeof va !== 'number' || typeof vb !== 'number') {
+      comparisons.push({ a, b, metric, value_a: va ?? null, value_b: vb ?? null, ok: false });
+      problems.push(`${a} vs ${b} (${metric}): ${m.name} not comparable (${va ?? 'none'} vs ${vb ?? 'none'})`);
+      continue;
+    }
+    const diff = va ? Math.abs(vb - va) / va : null;
+    const na = noiseCell(ca.P);
+    const nb = noiseCell(cb.P);
+    const spreads = [na ? m.spread(na) : null, nb ? m.spread(nb) : null];
+    const noise = spreads.some((x) => x === null || x === undefined) ? null : Math.max(...spreads);
+    const ok = diff !== null && noise !== null && diff >= HIGH_NOISE_FACTOR * noise;
+    comparisons.push({ a, b, metric, value_a: va, value_b: vb, diff: round(diff), noise_spread: round(noise), needed: noise === null ? null : round(HIGH_NOISE_FACTOR * noise), ok });
+    if (!na || !nb) problems.push(`${a} vs ${b} (${metric}): no noise floor cell (s1 atomic, W=0, 2 <= G <= P) at P${ca.P}/P${cb.P}`);
+    else if (noise === null) problems.push(`${a} vs ${b} (${metric}): ${m.name} spread of the noise floor cell unknown (below clock resolution?)`);
+    else if (diff === null) problems.push(`${a} vs ${b} (${metric}): ${m.name} of ${a} is 0`);
+    else if (!ok) problems.push(`${a} vs ${b} (${metric}): difference ${(diff * 100).toFixed(1)} % < ${HIGH_NOISE_FACTOR} x noise ${m.name} spread ${(noise * 100).toFixed(1)} %`);
+  }
+  conditions.noise_floor = {
+    ok: problems.length === 0,
+    factor: HIGH_NOISE_FACTOR,
+    comparisons,
+    detail: problems.length ? problems.join('; ') : `${comparisons.length} headline comparisons clear ${HIGH_NOISE_FACTOR}x the noise spread of their metric`,
+  };
+}
+
+// second_run: an independent run repeats the headline numbers within ±5 %.
+let secondRun = null;
+{
+  const problems = [];
+  if (!secondRunPath) problems.push('no second run given (--second-run PATH)');
+  else {
+    let other;
+    try {
+      other = readSummary(secondRunPath);
+    } catch (e) {
+      console.error(`report: ${e.message}`);
+      process.exit(2);
+    }
+    const cmp = compareSummaries({ cells }, other, { cells: headline ? headline.cells : null });
+    const otherEnv = other.environment?.runs?.[0] ?? null;
+    const thisEnv = environments[0];
+    const day = (t) => (t ? String(t).slice(0, 10) : null);
+    secondRun = {
+      path: secondRunPath,
+      scope: cmp.scope,
+      cells_compared: cmp.cells_compared,
+      numbers_compared: cmp.numbers_compared,
+      max_abs_diff_pct: cmp.max_abs_diff_pct,
+      within: cmp.within,
+      outside: cmp.outside,
+      incomparable: cmp.incomparable,
+      missing: cmp.missing.map((m) => m.cell_id),
+      other_boot_id: otherEnv?.boot_id ?? null,
+      other_checked_at: otherEnv?.checked_at ?? null,
+    };
+    if (!cmp.within) {
+      problems.push(`second run not within ±${SECOND_RUN_TOLERANCE * 100} %: ${cmp.outside.length} cells outside, ` +
+        `${cmp.incomparable.length} incomparable, ${cmp.missing.length} missing` +
+        (cmp.numbers_compared ? `, max |diff| ${cmp.max_abs_diff_pct} %` : ', nothing compared'));
+    }
+    if (!thisEnv.boot_id || !otherEnv?.boot_id) problems.push('second run: boot ID of a run unknown (environment.json)');
+    else if (thisEnv.boot_id === otherEnv.boot_id) problems.push('second run: same boot as this run (needs a rebooted host)');
+    if (!day(thisEnv.checked_at) || !day(otherEnv?.checked_at)) problems.push('second run: date of a run unknown (environment.json)');
+    else if (day(thisEnv.checked_at) === day(otherEnv.checked_at)) problems.push('second run: same day as this run (needs another day)');
+    if (other.environment && other.environment.passed !== true) problems.push('second run: its own host-check did not pass');
+    if (!other.environment) problems.push('second run: its summary has no environment record');
+  }
+  conditions.second_run = {
+    ok: problems.length === 0,
+    tolerance: SECOND_RUN_TOLERANCE,
+    ...(secondRun ? { result: secondRun } : {}),
+    detail: problems.length ? problems.join('; ') : `headline numbers within ±${SECOND_RUN_TOLERANCE * 100} % on another day and boot`,
+  };
+}
+
+// low (ADR-0050, class T): more than 15 % of the cells flagged, fewer than 5
+// valid repetitions in any cell (K2), or no environment record of a run
+// directory. The record is environment.json (linux-metal) or RUN.md (written
+// by run.sh for every profile); a directory with neither has no record at all.
+const lowReasons = [];
+if (cells.length > 0 && gateFailed / cells.length > LOW_CONFIDENCE_SHARE) {
+  lowReasons.push(`${gateFailed}/${cells.length} cells failed a soft gate, more than ${LOW_CONFIDENCE_SHARE * 100} %`);
+}
+{
+  const few = cells.filter((c) => c.reps < HIGH_MIN_REPS);
+  if (few.length) lowReasons.push(`${few.length} cells have fewer than ${HIGH_MIN_REPS} valid repetitions`);
+}
+{
+  const runDirs = [[dir, merge ? 'first pass' : 'run'], ...(merge ? [[rerunDir, 'rerun']] : [])];
+  const bare = runDirs.filter(([d]) => !existsSync(join(d, 'environment.json')) && !existsSync(join(d, 'RUN.md')));
+  if (bare.length) lowReasons.push(`no environment record (environment.json or RUN.md) for: ${bare.map(([, l]) => l).join(', ')}`);
+}
+const confidenceMissing = Object.entries(conditions).filter(([, c]) => !c.ok).map(([k, c]) => `${k}: ${c.detail}`);
+const confidence = lowReasons.length ? 'low' : confidenceMissing.length === 0 ? 'high' : 'medium';
+const confidenceReason = lowReasons.length
+  ? `low: ${lowReasons.join('; ')}`
+  : confidence === 'high'
+    ? 'high: every condition of ADR-0050 class T checked by the tool holds (open data is a publishing step)'
+    : `medium: high needs ${confidenceMissing.length} more condition(s)`;
+
 const summary = {
   generated: new Date().toISOString(),
   dir,
@@ -422,6 +722,15 @@ const summary = {
       `drifted more than ${G5_DRIFT}. Flags do not decide reruns.`,
     rerun_trigger: RERUN_RULE,
     rerun_basis: RERUN_BASIS,
+    confidence: `low when more than ${LOW_CONFIDENCE_SHARE * 100} % of the cells failed a soft gate (any flag but ` +
+      `missing_reps), when any cell has fewer than ${HIGH_MIN_REPS} valid repetitions, or when a run directory has ` +
+      `no environment record (environment.json or RUN.md); high when all of: every cell >= ${HIGH_MIN_REPS} valid repetitions; <= ${HIGH_FLAGGED_SHARE * 100} % ` +
+      'of the cells failed a soft gate and no headline cell did; environment.json and every host-check/ record ' +
+      `passed (linux-metal profile); each headline comparison differs in its metric (throughput or op_latency p99, ` +
+      `named on the headline line) by >= ${HIGH_NOISE_FACTOR}x the repetition spread ((max-min)/median) of the same ` +
+      'metric in the noise floor cell at its P; a second run on another day and ' +
+      `boot repeats the headline numbers within ±${SECOND_RUN_TOLERANCE * 100} % (compare-runs.mjs); medium ` +
+      'otherwise. Open data (ADR-0050 condition 6) is not checked by the tool.',
     spread_persistent: merge
       ? 'spread_persistent marks a rerun cell (listed in rerun/cells.txt and replaced by its rerun) that met ' +
         'the G4 part (trimmed range) of the rerun trigger on the first-pass data and still meets it on the ' +
@@ -442,7 +751,10 @@ const summary = {
     gate_failed_cells: gateFailed,
     gate_failed_share: cells.length ? round(gateFailed / cells.length) : null,
     flag_counts: flagCounts,
-    confidence_suggestion: cells.length && gateFailed / cells.length > LOW_CONFIDENCE_SHARE ? 'low' : 'medium',
+    confidence_suggestion: confidence,
+    confidence_reason: confidenceReason,
+    confidence_missing: confidenceMissing,
+    confidence_conditions: conditions,
     rerun_basis: RERUN_BASIS,
     rerun_count: rerunCells.length,
     rerun_by_p: byP(rerunCells),
@@ -475,6 +787,8 @@ const summary = {
     reruns_after_hard_gate: measured.filter((t) => t.attempt === 2).length,
   },
   noise_floor: noiseFloor,
+  environment,
+  headline: headline ? { file: headlineFile, ...headline } : null,
   label_checks: labelChecks,
   cells,
 };
@@ -526,6 +840,12 @@ const cols = [
   ['ops_ratio', (c) => c.latency.ops_ratio],
   ['drift_max', (c) => c.calib.drift_max],
   ['flags', (c) => c.flags.join(';')],
+  // added with the high branch; appended so existing column positions hold
+  ['ops_median', (c) => c.throughput.median],
+  ['ops_q1', (c) => c.throughput.q1],
+  ['ops_q3', (c) => c.throughput.q3],
+  ['ops_iqr', (c) => c.throughput.iqr],
+  ['op_p99_iqr', (c) => c.latency.op_p99.iqr ?? ''],
 ];
 const esc = (v) => {
   const s = v === null || v === undefined ? '' : String(v);
@@ -544,3 +864,5 @@ console.log(
     `labels ${labelChecks.filter((l) => l.ok).length}/${labelChecks.length}` +
     (merge ? `, merged ${rerunIds.size} rerun cells, ${persistentCells.length} spread_persistent -> ${outDir}` : ''),
 );
+console.log(`report: confidence ${confidenceReason}`);
+for (const m of confidenceMissing) console.log(`report:   missing for high: ${m}`);

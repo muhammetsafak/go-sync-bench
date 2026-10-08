@@ -1,6 +1,13 @@
 {
   "windows": { "warmup_s": 0.5, "throughput_s": 1.5, "latency_s": 2.0 },
   "cpusets": { "1": "4", "2": "4-5", "4": "4-7", "8": "4-11" },
+  "profiles": {
+    "linux-metal": {
+      "isolated_cpus": "8-15",
+      "system_cpus": "0-7",
+      "cpusets": { "1": "8", "2": "8-9", "4": "8-11", "8": "8-15" }
+    }
+  },
   "sets": {
     "main": {
       "rounds": 5,
