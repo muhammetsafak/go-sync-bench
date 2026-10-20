@@ -340,15 +340,71 @@ environment record, round by round.
   `RUN.md` names the repetition that spans the sleep
   (`s1-chan_oneway-g64-p1-w0` r3) and the repetitions around it.
 
+## Results — 2026-10-18 and 2026-10-19 (x86_64, bare metal)
+
+Two independent runs of the same `main` set on a second host. Run A and run B are each other's second run; neither is a second
+run of the 2026-09-29 record, whose section above is unchanged. Run A is
+`results/2026-10-18/`, run B is `results/2026-10-19/`.
+Each has a `merged/` report (first pass plus the one-time rerun) and a
+`RUN.md` with the environment record.
+
+- **Host.** AMD Ryzen 9 5950X, SMT off, 16 CPUs, bare metal Ubuntu 26.04.1,
+  kernel 7.0.0-38-generic, Docker 29.9.1, go1.27.1. Profile `linux-metal`:
+  the measurement runs on cpuset 8-15 (isolated), the system on 0-7. Run B
+  ran with the C2 idle state disabled (`environment.json`,
+  `cpuidle-state2-after.txt`).
+- **Scope.** 845 cells x 5 rounds each, P groups 1/2/4/8, cool-down 60 s
+  after every container. The seed differs from the 2026-09-29 run (`4096595856`
+  for run A), so the cell order differs too.
+- **Confidence.** Both runs give `low`: 433 of 845 cells (run A) and 440 of
+  845 cells (run B) carry at least one flag. `spread_persistent`: A 44 cells,
+  B 39. Compared with 2026-09-29 (518 flagged), `calib_drift` does not occur
+  here.
+- **Second run.** Run A against run B: 220 of the 845 cells have at least one
+  number outside +-5% (`bench/compare-runs.mjs`). 38 of them are on
+  throughput: 31 in the Mutex/RWMutex/Cond family (`s1-mutex`, `s2-mutex`,
+  `s3-cond`, `s1-rwmutex`, `s2-rwmutex`) and 7 S3 channel cells; no S1
+  atomic, `chan_oneway` or `chan_reqresp` cell is outside on throughput.
+  201 are outside on p99,
+  182 of them on p99 only; 138 of those 201 are in the 5-13% band, one
+  histogram bucket step.
+- **Bimodal cells.** `s1-mutex-g64-p8-w0` and `s1-mutex-g10000-p8-w0` land on
+  one of two levels from repetition to repetition on this host. The
+  `s1-mutex-g64-p8-w0` medians are 16.27 M ops/s (A) and 26.25 M ops/s (B);
+  a lower level of about 16 M ops/s appears in every run. The cause is not
+  established: isolation, C2 and starvation were ruled out in the diagnostic
+  runs (`results/diag-20261018T114457Z/`). Do not read the difference between
+  the two runs of these cells as noise or as an architecture effect.
+- **Goroutine fairness at G=4.** The `atomic` cells at G=4 are less even here
+  than on Apple silicon: `min_max` is about 0.51 at P=4 and 0.59-0.66 at P=8
+  (0.96 on the Mac).
+- **Timeouts.** Every repetition that hit the 64 s limit in either run was at
+  P=2 and G=10000 (`s1-atomic-g10000-p2-w0`, `s3-chan1024-g10000-p2-w1000`).
+  The retry passed each time. The cause is not examined.
+- **Platform comparison.** A difference between this host and the Apple
+  silicon record mixes the architecture (aarch64, x86_64) with Docker
+  Desktop's VM against bare metal, the kernel, core isolation and the core
+  count. The 2026-09-29 record is a single run, so its own run-to-run spread
+  is unknown.
+
 ## Limits
 
-- One machine: Apple silicon, Docker Desktop, aarch64. The vCPUs are not
-  pinned to performance or efficiency cores; the host scheduler decides, and
-  the cluster clock follows the number of busy cores.
+- Two machines, each with its own confounds. Apple silicon (Docker Desktop,
+  aarch64): the vCPUs are not pinned to performance or efficiency cores; the
+  host scheduler decides, and the cluster clock follows the number of busy
+  cores. Ryzen (bare metal, x86_64): SMT off and the measurement on isolated
+  cores 8-15, but two Mutex headline cells are bimodal (see above). A
+  difference between the two hosts is not an architecture effect unless both
+  Ryzen runs agree and the cell is not flagged.
+- The Apple silicon record is one run, so its run-to-run spread is unknown;
+  the Ryzen runs give one.
+- Each host ran one Go release (go1.27.1) and one kernel or VM image.
 - The starving bit is read from an unexported field; a Go release that
   changes the mutex layout breaks the self-test, not the measurement.
 - Latency is sampled 1 in 16; a timestamp costs `env.clock_read_ns`. G6
-  shows how much the sampling itself slowed the cell.
+  shows how much the sampling itself slowed the cell. The p99 and p99.9 come
+  from a histogram whose bucket step is 6.7-12.5%, so a p99 difference of one
+  step is the resolution of the instrument.
 
 ## Licence
 
