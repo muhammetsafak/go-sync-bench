@@ -1,0 +1,4 @@
+default: multi-user.target
+active: inactive graphical / active multi-user
+Linux homelab 7.0.0-38-generic #38-Ubuntu SMP PREEMPT_DYNAMIC Fri Sep  4 09:10:14 UTC 2026 x86_64 GNU/Linux
+ 19:44:40 up 1 min,  2 users,  load average: 0.73, 0.41, 0.16

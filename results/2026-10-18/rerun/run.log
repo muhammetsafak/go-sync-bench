@@ -1,0 +1,529 @@
+ok    linux-metal profile  isolated 8-15, system 0-7, cpusets {"1":"8","2":"8-9","4":"8-11","8":"8-15"}
+ok    cpu sets             online 0-15; measurement cpusets inside isolated 8-15
+ok    L3 topology          isolated 8-15 = one L3 domain; system 0-7 = another
+ok    virtualization       bare metal (systemd-detect-virt: none; no hypervisor flag)
+ok    SMT off              smt/control=off smt/active=0
+ok    isolcpus             isolcpus=managed_irq,8-15, no domain isolation
+ok    nohz_full            nohz_full=8-15
+ok    process affinity     PID 1 Cpus_allowed_list=0-7
+ok    governor             driver amd-pstate-epp (active): performance x16; EPP performance
+ok    boost off            17 boost control(s) read 0
+ok    IRQ affinity         65 IRQs, none movable on isolated CPUs; 10 pinned by their mask (irq.pinned_to_isolated), 10 of them not verified as kernel-managed (/sys/kernel/debug/irq/irqs unreadable; run with sudo to verify)
+ok    load                 1-min load 0.00 <= 1.0
+ok    sleep                sleep/suspend/hibernate/hybrid-sleep targets masked
+ok    background services  none of 11 units active
+ok    docker               /usr/bin/docker, server 29.9.1, systemd cgroup v2
+host-check: passed (start)
+[19:17:51] run 2026-10-18: set=main cells=75 rounds=5 seed=3181962264
+ok    linux-metal profile  isolated 8-15, system 0-7, cpusets {"1":"8","2":"8-9","4":"8-11","8":"8-15"}
+ok    cpu sets             online 0-15; measurement cpusets inside isolated 8-15
+ok    L3 topology          isolated 8-15 = one L3 domain; system 0-7 = another
+ok    virtualization       bare metal (systemd-detect-virt: none; no hypervisor flag)
+ok    SMT off              smt/control=off smt/active=0
+ok    isolcpus             isolcpus=managed_irq,8-15, no domain isolation
+ok    nohz_full            nohz_full=8-15
+ok    process affinity     PID 1 Cpus_allowed_list=0-7
+ok    governor             driver amd-pstate-epp (active): performance x16; EPP performance
+ok    boost off            17 boost control(s) read 0
+ok    IRQ affinity         65 IRQs, none movable on isolated CPUs; 10 pinned by their mask (irq.pinned_to_isolated), 10 of them not verified as kernel-managed (/sys/kernel/debug/irq/irqs unreadable; run with sudo to verify)
+ok    load                 skipped in phase round-1 (E1 gates the load); loadavg 0.24 0.05 0.02 1/485 144711
+ok    sleep                sleep/suspend/hibernate/hybrid-sleep targets masked
+ok    background services  none of 11 units active
+ok    docker               /usr/bin/docker, server 29.9.1, systemd cgroup v2
+host-check: passed (round-1)
+[19:17:53] round 1 P=2 cpuset=8-9
+[19:17:53 r1-P2] selftest: pass
+[19:17:58 r1-P2] 1/32 s1-chan_oneway-g16-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:18:02 r1-P2] 2/32 s3-cond1024-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:18:06 r1-P2] 3/32 s1-mutex-g16-p2-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[19:18:11 r1-P2] 4/32 s1-rwmutex-g256-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:18:15 r1-P2] 5/32 s3-chan1024-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.42s
+[19:18:19 r1-P2] 6/32 s1-chan_reqresp-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:18:24 r1-P2] 7/32 s2-rwmutex-r99-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[19:18:28 r1-P2] 8/32 s1-mutex-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:18:33 r1-P2] 9/32 s1-rwmutex-g10000-p2-w0 attempt=1 exit=0 valid=true wall=4.41s
+[19:18:37 r1-P2] 10/32 s3-cond1024-g10000-p2-w0 attempt=1 exit=0 valid=true wall=4.42s
+[19:18:41 r1-P2] 11/32 s3-cond64-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:18:46 r1-P2] 12/32 s3-cond1024-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.42s
+[19:18:50 r1-P2] 13/32 s1-rwmutex-g10000-p2-w100 attempt=1 exit=0 valid=true wall=4.41s
+[19:18:55 r1-P2] 14/32 s1-chan_reqresp-g256-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:18:59 r1-P2] 15/32 s1-chan_oneway-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.39s
+[19:19:05 r1-P2] 16/32 s3-chan64-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=5.55s
+[19:19:09 r1-P2] 17/32 s1-rwmutex-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:19:13 r1-P2] 18/32 s1-mutex-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:19:18 r1-P2] 19/32 s2-rwmutex-r90-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.39s
+[19:19:22 r1-P2] 20/32 s1-mutex-g4-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:19:26 r1-P2] 21/32 s1-atomic-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.39s
+[19:19:31 r1-P2] 22/32 s1-chan_reqresp-g10000-p2-w0 attempt=1 exit=0 valid=true wall=4.44s
+[19:19:35 r1-P2] 23/32 s1-mutex-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:19:40 r1-P2] 24/32 s1-mutex-g16-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:19:44 r1-P2] 25/32 s2-rwmutex-r99-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:19:48 r1-P2] 26/32 s1-chan_reqresp-g16-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:19:53 r1-P2] 27/32 s3-chan0-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:19:57 r1-P2] 28/32 s2-rwmutex-r99-g1024-p2-w1000 attempt=1 exit=0 valid=true wall=4.40s
+[19:20:02 r1-P2] 29/32 s1-mutex-g4-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:20:06 r1-P2] 30/32 s3-chan1-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.42s
+[19:20:10 r1-P2] 31/32 s1-mutex-g256-p2-w0 attempt=1 exit=0 valid=true wall=4.38s
+[19:20:15 r1-P2] 32/32 s2-rwmutex-r99-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:21:18] round 1 P=8 cpuset=8-15
+[19:21:18 r1-P8] selftest: pass
+[19:21:22 r1-P8] 1/28 s2-rwmutex-r99-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[19:21:27 r1-P8] 2/28 s3-cond64-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.45s
+[19:21:31 r1-P8] 3/28 s3-chan0-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.45s
+[19:21:36 r1-P8] 4/28 s3-cond1024-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.43s
+[19:21:40 r1-P8] 5/28 s3-chan1024-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:21:45 r1-P8] 6/28 s2-mutex-r99-g64-p8-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:21:49 r1-P8] 7/28 s2-mutex-r90-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.44s
+[19:21:53 r1-P8] 8/28 s1-rwmutex-g256-p8-w0 attempt=1 exit=0 valid=true wall=4.38s
+[19:21:58 r1-P8] 9/28 s2-mutex-r90-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.39s
+[19:22:02 r1-P8] 10/28 s3-cond1024-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:22:07 r1-P8] 11/28 s3-cond1024-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.43s
+[19:22:11 r1-P8] 12/28 s3-chan64-g64-p8-w1000 attempt=1 exit=0 valid=true wall=4.36s
+[19:22:15 r1-P8] 13/28 s3-chan1024-g64-p8-w1000 attempt=1 exit=0 valid=true wall=4.39s
+[19:22:20 r1-P8] 14/28 s1-rwmutex-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.41s
+[19:22:24 r1-P8] 15/28 s3-chan1-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.45s
+[19:22:29 r1-P8] 16/28 s3-cond64-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.45s
+[19:22:33 r1-P8] 17/28 s3-chan1024-g1024-p8-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[19:22:37 r1-P8] 18/28 s1-mutex-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:22:42 r1-P8] 19/28 s3-chan64-g1024-p8-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[19:22:46 r1-P8] 20/28 s1-mutex-g1024-p8-w100 attempt=1 exit=0 valid=true wall=4.39s
+[19:22:51 r1-P8] 21/28 s1-rwmutex-g10000-p8-w100 attempt=1 exit=0 valid=true wall=4.42s
+[19:22:55 r1-P8] 22/28 s2-mutex-r50-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.42s
+[19:22:59 r1-P8] 23/28 s2-mutex-r50-g64-p8-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:23:04 r1-P8] 24/28 s3-chan0-g1024-p8-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[19:23:08 r1-P8] 25/28 s2-mutex-r99-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.43s
+[19:23:12 r1-P8] 26/28 s2-mutex-r90-g64-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:23:17 r1-P8] 27/28 s2-mutex-r50-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:23:21 r1-P8] 28/28 s3-cond64-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:24:24] round 1 P=4 cpuset=8-11
+[19:24:25 r1-P4] selftest: pass
+[19:24:29 r1-P4] 1/11 s2-rwmutex-r99-g10000-p4-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[19:24:33 r1-P4] 2/11 s1-chan_reqresp-g10000-p4-w100 attempt=1 exit=0 valid=true wall=4.43s
+[19:24:38 r1-P4] 3/11 s3-cond1024-g64-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:24:42 r1-P4] 4/11 s1-chan_oneway-g1-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:24:47 r1-P4] 5/11 s2-mutex-r50-g1024-p4-w0 attempt=1 exit=0 valid=true wall=4.38s
+[19:24:51 r1-P4] 6/11 s3-chan0-g10000-p4-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:24:55 r1-P4] 7/11 s1-chan_oneway-g1-p4-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:25:00 r1-P4] 8/11 s2-chan_owner-r99-g10000-p4-w0 attempt=1 exit=0 valid=true wall=4.41s
+[19:25:04 r1-P4] 9/11 s1-mutex-g16-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:25:08 r1-P4] 10/11 s1-rwmutex-g10000-p4-w0 attempt=1 exit=0 valid=true wall=4.41s
+[19:25:13 r1-P4] 11/11 s1-rwmutex-g16-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:26:16] round 1 P=1 cpuset=8
+[19:26:16 r1-P1] selftest: pass
+[19:26:21 r1-P1] 1/4 s1-mutex-g1024-p1-w0 attempt=1 exit=0 valid=true wall=4.38s
+[19:26:25 r1-P1] 2/4 s3-cond64-g64-p1-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:26:29 r1-P1] 3/4 s2-rwmutex-r99-g10000-p1-w0 attempt=1 exit=0 valid=true wall=4.42s
+[19:26:34 r1-P1] 4/4 s3-cond64-g1024-p1-w1000 attempt=1 exit=0 valid=true wall=4.37s
+ok    linux-metal profile  isolated 8-15, system 0-7, cpusets {"1":"8","2":"8-9","4":"8-11","8":"8-15"}
+ok    cpu sets             online 0-15; measurement cpusets inside isolated 8-15
+ok    L3 topology          isolated 8-15 = one L3 domain; system 0-7 = another
+ok    virtualization       bare metal (systemd-detect-virt: none; no hypervisor flag)
+ok    SMT off              smt/control=off smt/active=0
+ok    isolcpus             isolcpus=managed_irq,8-15, no domain isolation
+ok    nohz_full            nohz_full=8-15
+ok    process affinity     PID 1 Cpus_allowed_list=0-7
+ok    governor             driver amd-pstate-epp (active): performance x16; EPP performance
+ok    boost off            17 boost control(s) read 0
+ok    IRQ affinity         65 IRQs, none movable on isolated CPUs; 10 pinned by their mask (irq.pinned_to_isolated), 10 of them not verified as kernel-managed (/sys/kernel/debug/irq/irqs unreadable; run with sudo to verify)
+ok    load                 skipped in phase round-2 (E1 gates the load); loadavg 0.60 1.60 1.03 3/481 149449
+ok    sleep                sleep/suspend/hibernate/hybrid-sleep targets masked
+ok    background services  none of 11 units active
+ok    docker               /usr/bin/docker, server 29.9.1, systemd cgroup v2
+host-check: passed (round-2)
+[19:27:39] round 2 P=4 cpuset=8-11
+[19:27:39 r2-P4] selftest: pass
+[19:27:43 r2-P4] 1/11 s1-mutex-g16-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:27:48 r2-P4] 2/11 s3-chan0-g10000-p4-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:27:52 r2-P4] 3/11 s2-chan_owner-r99-g10000-p4-w0 attempt=1 exit=0 valid=true wall=4.41s
+[19:27:56 r2-P4] 4/11 s2-mutex-r50-g1024-p4-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:28:01 r2-P4] 5/11 s1-chan_reqresp-g10000-p4-w100 attempt=1 exit=0 valid=true wall=4.44s
+[19:28:05 r2-P4] 6/11 s3-cond1024-g64-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:28:09 r2-P4] 7/11 s1-chan_oneway-g1-p4-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:28:14 r2-P4] 8/11 s1-chan_oneway-g1-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:28:18 r2-P4] 9/11 s2-rwmutex-r99-g10000-p4-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[19:28:23 r2-P4] 10/11 s1-rwmutex-g10000-p4-w0 attempt=1 exit=0 valid=true wall=4.41s
+[19:28:27 r2-P4] 11/11 s1-rwmutex-g16-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:29:30] round 2 P=2 cpuset=8-9
+[19:29:30 r2-P2] selftest: pass
+[19:29:35 r2-P2] 1/32 s1-mutex-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:29:39 r2-P2] 2/32 s1-chan_reqresp-g256-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:29:43 r2-P2] 3/32 s1-mutex-g4-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:29:48 r2-P2] 4/32 s3-cond1024-g10000-p2-w0 attempt=1 exit=0 valid=true wall=4.42s
+[19:29:52 r2-P2] 5/32 s3-chan1-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:29:57 r2-P2] 6/32 s1-chan_reqresp-g16-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:30:01 r2-P2] 7/32 s1-chan_reqresp-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:30:25 r2-P2] 8/32 s3-chan1024-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=24.36s
+[19:30:30 r2-P2] 9/32 s3-cond1024-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.42s
+[19:30:34 r2-P2] 10/32 s1-chan_reqresp-g10000-p2-w0 attempt=1 exit=0 valid=true wall=4.41s
+[19:30:39 r2-P2] 11/32 s1-mutex-g16-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:30:44 r2-P2] 12/32 s2-rwmutex-r99-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=5.00s
+[19:30:48 r2-P2] 13/32 s2-rwmutex-r99-g1024-p2-w1000 attempt=1 exit=0 valid=true wall=4.39s
+[19:30:52 r2-P2] 14/32 s1-rwmutex-g256-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:30:57 r2-P2] 15/32 s3-cond1024-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:31:01 r2-P2] 16/32 s2-rwmutex-r99-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:31:05 r2-P2] 17/32 s1-chan_oneway-g16-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:31:10 r2-P2] 18/32 s2-rwmutex-r90-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:31:14 r2-P2] 19/32 s1-rwmutex-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:31:19 r2-P2] 20/32 s1-rwmutex-g10000-p2-w0 attempt=1 exit=0 valid=true wall=4.41s
+[19:31:23 r2-P2] 21/32 s1-atomic-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.38s
+[19:31:27 r2-P2] 22/32 s3-cond64-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:31:32 r2-P2] 23/32 s1-mutex-g256-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:31:36 r2-P2] 24/32 s1-chan_oneway-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.38s
+[19:31:40 r2-P2] 25/32 s1-mutex-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:31:45 r2-P2] 26/32 s3-chan0-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:31:49 r2-P2] 27/32 s3-chan64-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.42s
+[19:31:54 r2-P2] 28/32 s1-rwmutex-g10000-p2-w100 attempt=1 exit=0 valid=true wall=4.41s
+[19:31:58 r2-P2] 29/32 s2-rwmutex-r99-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:32:02 r2-P2] 30/32 s1-mutex-g16-p2-w1000 attempt=1 exit=0 valid=true wall=4.36s
+[19:32:07 r2-P2] 31/32 s1-mutex-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:32:11 r2-P2] 32/32 s1-mutex-g4-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:33:14] round 2 P=1 cpuset=8
+[19:33:14 r2-P1] selftest: pass
+[19:33:19 r2-P1] 1/4 s1-mutex-g1024-p1-w0 attempt=1 exit=0 valid=true wall=4.39s
+[19:33:23 r2-P1] 2/4 s3-cond64-g64-p1-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:33:28 r2-P1] 3/4 s2-rwmutex-r99-g10000-p1-w0 attempt=1 exit=0 valid=true wall=4.43s
+[19:33:32 r2-P1] 4/4 s3-cond64-g1024-p1-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[19:34:35] round 2 P=8 cpuset=8-15
+[19:34:35 r2-P8] selftest: pass
+[19:34:40 r2-P8] 1/28 s3-cond64-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[19:34:44 r2-P8] 2/28 s3-chan0-g1024-p8-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[19:34:48 r2-P8] 3/28 s3-cond1024-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:34:53 r2-P8] 4/28 s2-mutex-r90-g64-p8-w0 attempt=1 exit=0 valid=true wall=4.38s
+[19:34:57 r2-P8] 5/28 s2-mutex-r90-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.44s
+[19:35:02 r2-P8] 6/28 s1-mutex-g1024-p8-w100 attempt=1 exit=0 valid=true wall=4.37s
+[19:35:06 r2-P8] 7/28 s3-cond1024-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.46s
+[19:35:11 r2-P8] 8/28 s3-cond64-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.39s
+[19:35:15 r2-P8] 9/28 s2-mutex-r99-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.45s
+[19:35:19 r2-P8] 10/28 s3-chan1024-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[19:35:24 r2-P8] 11/28 s3-chan1024-g64-p8-w1000 attempt=1 exit=0 valid=true wall=4.42s
+[19:35:28 r2-P8] 12/28 s3-chan64-g1024-p8-w1000 attempt=1 exit=0 valid=true wall=4.39s
+[19:35:33 r2-P8] 13/28 s1-rwmutex-g10000-p8-w100 attempt=1 exit=0 valid=true wall=4.43s
+[19:35:37 r2-P8] 14/28 s3-chan1-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:35:41 r2-P8] 15/28 s1-rwmutex-g256-p8-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:35:46 r2-P8] 16/28 s2-mutex-r50-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.39s
+[19:35:50 r2-P8] 17/28 s3-cond1024-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.45s
+[19:35:55 r2-P8] 18/28 s2-mutex-r50-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.42s
+[19:35:59 r2-P8] 19/28 s3-cond64-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.43s
+[19:36:03 r2-P8] 20/28 s3-chan1024-g1024-p8-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[19:36:08 r2-P8] 21/28 s2-mutex-r99-g64-p8-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:36:12 r2-P8] 22/28 s2-rwmutex-r99-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.55s
+[19:36:17 r2-P8] 23/28 s1-rwmutex-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.41s
+[19:36:21 r2-P8] 24/28 s1-mutex-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:36:26 r2-P8] 25/28 s3-chan0-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:36:30 r2-P8] 26/28 s2-mutex-r90-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:36:34 r2-P8] 27/28 s2-mutex-r50-g64-p8-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:36:39 r2-P8] 28/28 s3-chan64-g64-p8-w1000 attempt=1 exit=0 valid=true wall=4.38s
+ok    linux-metal profile  isolated 8-15, system 0-7, cpusets {"1":"8","2":"8-9","4":"8-11","8":"8-15"}
+ok    cpu sets             online 0-15; measurement cpusets inside isolated 8-15
+ok    L3 topology          isolated 8-15 = one L3 domain; system 0-7 = another
+ok    virtualization       bare metal (systemd-detect-virt: none; no hypervisor flag)
+ok    SMT off              smt/control=off smt/active=0
+ok    isolcpus             isolcpus=managed_irq,8-15, no domain isolation
+ok    nohz_full            nohz_full=8-15
+ok    process affinity     PID 1 Cpus_allowed_list=0-7
+ok    governor             driver amd-pstate-epp (active): performance x16; EPP performance
+ok    boost off            17 boost control(s) read 0
+ok    IRQ affinity         65 IRQs, none movable on isolated CPUs; 10 pinned by their mask (irq.pinned_to_isolated), 10 of them not verified as kernel-managed (/sys/kernel/debug/irq/irqs unreadable; run with sudo to verify)
+ok    load                 skipped in phase round-3 (E1 gates the load); loadavg 2.37 2.63 1.73 1/478 154193
+ok    sleep                sleep/suspend/hibernate/hybrid-sleep targets masked
+ok    background services  none of 11 units active
+ok    docker               /usr/bin/docker, server 29.9.1, systemd cgroup v2
+host-check: passed (round-3)
+[19:37:44] round 3 P=4 cpuset=8-11
+[19:37:44 r3-P4] selftest: pass
+[19:37:48 r3-P4] 1/11 s2-chan_owner-r99-g10000-p4-w0 attempt=1 exit=0 valid=true wall=4.41s
+[19:37:53 r3-P4] 2/11 s1-mutex-g16-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:37:57 r3-P4] 3/11 s2-mutex-r50-g1024-p4-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:38:01 r3-P4] 4/11 s3-chan0-g10000-p4-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:38:06 r3-P4] 5/11 s1-rwmutex-g10000-p4-w0 attempt=1 exit=0 valid=true wall=4.41s
+[19:38:10 r3-P4] 6/11 s1-chan_reqresp-g10000-p4-w100 attempt=1 exit=0 valid=true wall=4.41s
+[19:38:15 r3-P4] 7/11 s1-chan_oneway-g1-p4-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:38:19 r3-P4] 8/11 s2-rwmutex-r99-g10000-p4-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[19:38:23 r3-P4] 9/11 s3-cond1024-g64-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:38:28 r3-P4] 10/11 s1-rwmutex-g16-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:38:32 r3-P4] 11/11 s1-chan_oneway-g1-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:39:35] round 3 P=1 cpuset=8
+[19:39:35 r3-P1] selftest: pass
+[19:39:40 r3-P1] 1/4 s2-rwmutex-r99-g10000-p1-w0 attempt=1 exit=0 valid=true wall=4.43s
+[19:39:44 r3-P1] 2/4 s1-mutex-g1024-p1-w0 attempt=1 exit=0 valid=true wall=4.39s
+[19:39:49 r3-P1] 3/4 s3-cond64-g64-p1-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:39:53 r3-P1] 4/4 s3-cond64-g1024-p1-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[19:40:56] round 3 P=2 cpuset=8-9
+[19:40:56 r3-P2] selftest: pass
+[19:41:01 r3-P2] 1/32 s1-chan_reqresp-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.39s
+[19:41:06 r3-P2] 2/32 s1-rwmutex-g10000-p2-w100 attempt=1 exit=0 valid=true wall=5.06s
+[19:41:10 r3-P2] 3/32 s1-atomic-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.39s
+[19:41:14 r3-P2] 4/32 s1-mutex-g4-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:41:19 r3-P2] 5/32 s3-chan1024-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:41:23 r3-P2] 6/32 s3-cond64-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:41:28 r3-P2] 7/32 s2-rwmutex-r99-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:41:32 r3-P2] 8/32 s2-rwmutex-r99-g1024-p2-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[19:41:36 r3-P2] 9/32 s1-rwmutex-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:41:41 r3-P2] 10/32 s1-chan_oneway-g16-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:41:45 r3-P2] 11/32 s1-chan_reqresp-g16-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:41:49 r3-P2] 12/32 s1-rwmutex-g256-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:41:54 r3-P2] 13/32 s2-rwmutex-r99-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:41:58 r3-P2] 14/32 s3-chan64-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.42s
+[19:42:03 r3-P2] 15/32 s1-mutex-g16-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:42:07 r3-P2] 16/32 s1-mutex-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:42:11 r3-P2] 17/32 s1-mutex-g16-p2-w1000 attempt=1 exit=0 valid=true wall=4.36s
+[19:42:16 r3-P2] 18/32 s2-rwmutex-r99-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[19:42:20 r3-P2] 19/32 s1-chan_reqresp-g256-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:42:25 r3-P2] 20/32 s2-rwmutex-r90-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.40s
+[19:42:29 r3-P2] 21/32 s1-rwmutex-g10000-p2-w0 attempt=1 exit=0 valid=true wall=4.41s
+[19:42:33 r3-P2] 22/32 s1-chan_reqresp-g10000-p2-w0 attempt=1 exit=0 valid=true wall=4.41s
+[19:42:38 r3-P2] 23/32 s1-mutex-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:42:42 r3-P2] 24/32 s3-cond1024-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:42:46 r3-P2] 25/32 s3-cond1024-g10000-p2-w0 attempt=1 exit=0 valid=true wall=4.42s
+[19:43:11 r3-P2] 26/32 s3-chan1-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=24.35s
+[19:43:15 r3-P2] 27/32 s1-mutex-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:43:20 r3-P2] 28/32 s1-mutex-g4-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:43:25 r3-P2] 29/32 s3-chan0-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.95s
+[19:43:29 r3-P2] 30/32 s1-mutex-g256-p2-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:43:33 r3-P2] 31/32 s3-cond1024-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.42s
+[19:43:38 r3-P2] 32/32 s1-chan_oneway-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.38s
+[19:44:41] round 3 P=8 cpuset=8-15
+[19:44:41 r3-P8] selftest: pass
+[19:44:45 r3-P8] 1/28 s2-rwmutex-r99-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.45s
+[19:44:50 r3-P8] 2/28 s3-cond64-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.43s
+[19:44:54 r3-P8] 3/28 s3-chan1024-g1024-p8-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:44:59 r3-P8] 4/28 s1-rwmutex-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.42s
+[19:45:03 r3-P8] 5/28 s1-rwmutex-g256-p8-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:45:07 r3-P8] 6/28 s3-chan1024-g64-p8-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[19:45:12 r3-P8] 7/28 s2-mutex-r90-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:45:16 r3-P8] 8/28 s2-mutex-r99-g64-p8-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:45:21 r3-P8] 9/28 s3-cond1024-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[19:45:25 r3-P8] 10/28 s3-chan0-g1024-p8-w1000 attempt=1 exit=0 valid=true wall=4.38s
+[19:45:29 r3-P8] 11/28 s1-mutex-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:45:34 r3-P8] 12/28 s2-mutex-r50-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.39s
+[19:45:38 r3-P8] 13/28 s2-mutex-r90-g64-p8-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:45:43 r3-P8] 14/28 s3-chan0-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[19:45:47 r3-P8] 15/28 s3-chan1024-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[19:45:51 r3-P8] 16/28 s2-mutex-r50-g64-p8-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:45:56 r3-P8] 17/28 s3-cond1024-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:46:00 r3-P8] 18/28 s2-mutex-r50-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.42s
+[19:46:05 r3-P8] 19/28 s3-chan64-g64-p8-w1000 attempt=1 exit=0 valid=true wall=4.36s
+[19:46:09 r3-P8] 20/28 s3-chan64-g1024-p8-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[19:46:13 r3-P8] 21/28 s1-mutex-g1024-p8-w100 attempt=1 exit=0 valid=true wall=4.40s
+[19:46:18 r3-P8] 22/28 s3-chan1-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.43s
+[19:46:22 r3-P8] 23/28 s2-mutex-r99-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.42s
+[19:46:27 r3-P8] 24/28 s3-cond64-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.48s
+[19:46:31 r3-P8] 25/28 s2-mutex-r90-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.42s
+[19:46:35 r3-P8] 26/28 s1-rwmutex-g10000-p8-w100 attempt=1 exit=0 valid=true wall=4.43s
+[19:46:40 r3-P8] 27/28 s3-cond64-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:46:44 r3-P8] 28/28 s3-cond1024-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.43s
+ok    linux-metal profile  isolated 8-15, system 0-7, cpusets {"1":"8","2":"8-9","4":"8-11","8":"8-15"}
+ok    cpu sets             online 0-15; measurement cpusets inside isolated 8-15
+ok    L3 topology          isolated 8-15 = one L3 domain; system 0-7 = another
+ok    virtualization       bare metal (systemd-detect-virt: none; no hypervisor flag)
+ok    SMT off              smt/control=off smt/active=0
+ok    isolcpus             isolcpus=managed_irq,8-15, no domain isolation
+ok    nohz_full            nohz_full=8-15
+ok    process affinity     PID 1 Cpus_allowed_list=0-7
+ok    governor             driver amd-pstate-epp (active): performance x16; EPP performance
+ok    boost off            17 boost control(s) read 0
+ok    IRQ affinity         65 IRQs, none movable on isolated CPUs; 10 pinned by their mask (irq.pinned_to_isolated), 10 of them not verified as kernel-managed (/sys/kernel/debug/irq/irqs unreadable; run with sudo to verify)
+ok    load                 skipped in phase round-4 (E1 gates the load); loadavg 2.46 2.89 2.13 1/480 158918
+ok    sleep                sleep/suspend/hibernate/hybrid-sleep targets masked
+ok    background services  none of 11 units active
+ok    docker               /usr/bin/docker, server 29.9.1, systemd cgroup v2
+host-check: passed (round-4)
+[19:47:49] round 4 P=2 cpuset=8-9
+[19:47:49 r4-P2] selftest: pass
+[19:47:54 r4-P2] 1/32 s1-chan_oneway-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.40s
+[19:47:58 r4-P2] 2/32 s2-rwmutex-r99-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:48:03 r4-P2] 3/32 s3-cond1024-g10000-p2-w0 attempt=1 exit=0 valid=true wall=4.42s
+[19:48:07 r4-P2] 4/32 s1-chan_reqresp-g256-p2-w100 attempt=1 exit=0 valid=true wall=4.39s
+[19:48:11 r4-P2] 5/32 s1-chan_oneway-g16-p2-w0 attempt=1 exit=0 valid=true wall=4.39s
+[19:48:16 r4-P2] 6/32 s3-chan64-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:48:20 r4-P2] 7/32 s3-cond1024-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.39s
+[19:48:24 r4-P2] 8/32 s1-rwmutex-g256-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:48:29 r4-P2] 9/32 s3-cond1024-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.42s
+[19:48:33 r4-P2] 10/32 s1-chan_reqresp-g16-p2-w0 attempt=1 exit=0 valid=true wall=4.39s
+[19:48:38 r4-P2] 11/32 s1-rwmutex-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:48:52 r4-P2] 12/32 s3-chan1024-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=14.26s
+[19:48:56 r4-P2] 13/32 s2-rwmutex-r99-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.47s
+[19:49:01 r4-P2] 14/32 s2-rwmutex-r90-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:49:05 r4-P2] 15/32 s1-mutex-g16-p2-w1000 attempt=1 exit=0 valid=true wall=4.36s
+[19:49:09 r4-P2] 16/32 s1-mutex-g256-p2-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:49:14 r4-P2] 17/32 s3-chan0-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:49:18 r4-P2] 18/32 s1-mutex-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:49:23 r4-P2] 19/32 s1-chan_reqresp-g10000-p2-w0 attempt=1 exit=0 valid=true wall=4.41s
+[19:49:27 r4-P2] 20/32 s1-mutex-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:49:31 r4-P2] 21/32 s1-rwmutex-g10000-p2-w100 attempt=1 exit=0 valid=true wall=4.41s
+[19:49:36 r4-P2] 22/32 s3-chan1-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:49:40 r4-P2] 23/32 s1-mutex-g16-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:49:45 r4-P2] 24/32 s1-mutex-g4-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:49:49 r4-P2] 25/32 s1-atomic-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.39s
+[19:49:53 r4-P2] 26/32 s2-rwmutex-r99-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:49:58 r4-P2] 27/32 s2-rwmutex-r99-g1024-p2-w1000 attempt=1 exit=0 valid=true wall=4.42s
+[19:50:02 r4-P2] 28/32 s1-mutex-g4-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:50:06 r4-P2] 29/32 s3-cond64-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:50:11 r4-P2] 30/32 s1-mutex-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:50:15 r4-P2] 31/32 s1-rwmutex-g10000-p2-w0 attempt=1 exit=0 valid=true wall=4.44s
+[19:50:20 r4-P2] 32/32 s1-chan_reqresp-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:51:23] round 4 P=8 cpuset=8-15
+[19:51:23 r4-P8] selftest: pass
+[19:51:27 r4-P8] 1/28 s3-chan64-g64-p8-w1000 attempt=1 exit=0 valid=true wall=4.39s
+[19:51:32 r4-P8] 2/28 s3-chan1024-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.43s
+[19:51:36 r4-P8] 3/28 s3-chan1024-g64-p8-w1000 attempt=1 exit=0 valid=true wall=4.38s
+[19:51:41 r4-P8] 4/28 s3-cond64-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.46s
+[19:51:45 r4-P8] 5/28 s1-rwmutex-g10000-p8-w100 attempt=1 exit=0 valid=true wall=4.42s
+[19:51:49 r4-P8] 6/28 s3-chan1024-g1024-p8-w1000 attempt=1 exit=0 valid=true wall=4.40s
+[19:51:54 r4-P8] 7/28 s3-cond64-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.43s
+[19:51:58 r4-P8] 8/28 s1-rwmutex-g256-p8-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:52:03 r4-P8] 9/28 s2-mutex-r99-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.53s
+[19:52:07 r4-P8] 10/28 s1-mutex-g1024-p8-w100 attempt=1 exit=0 valid=true wall=4.38s
+[19:52:12 r4-P8] 11/28 s3-cond1024-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.46s
+[19:52:16 r4-P8] 12/28 s1-mutex-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:52:20 r4-P8] 13/28 s2-mutex-r90-g64-p8-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:52:25 r4-P8] 14/28 s3-cond64-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.39s
+[19:52:29 r4-P8] 15/28 s3-chan0-g1024-p8-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[19:52:34 r4-P8] 16/28 s2-rwmutex-r99-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[19:52:38 r4-P8] 17/28 s2-mutex-r50-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:52:42 r4-P8] 18/28 s3-chan0-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:52:47 r4-P8] 19/28 s2-mutex-r50-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.48s
+[19:52:51 r4-P8] 20/28 s2-mutex-r99-g64-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:52:56 r4-P8] 21/28 s3-cond1024-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.39s
+[19:53:00 r4-P8] 22/28 s2-mutex-r90-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.45s
+[19:53:04 r4-P8] 23/28 s3-chan64-g1024-p8-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:53:09 r4-P8] 24/28 s3-cond1024-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[19:53:13 r4-P8] 25/28 s2-mutex-r50-g64-p8-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:53:18 r4-P8] 26/28 s3-chan1-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.43s
+[19:53:22 r4-P8] 27/28 s2-mutex-r90-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.39s
+[19:53:26 r4-P8] 28/28 s1-rwmutex-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.42s
+[19:54:30] round 4 P=1 cpuset=8
+[19:54:30 r4-P1] selftest: pass
+[19:54:34 r4-P1] 1/4 s3-cond64-g64-p1-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:54:39 r4-P1] 2/4 s1-mutex-g1024-p1-w0 attempt=1 exit=0 valid=true wall=4.39s
+[19:54:43 r4-P1] 3/4 s3-cond64-g1024-p1-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[19:54:47 r4-P1] 4/4 s2-rwmutex-r99-g10000-p1-w0 attempt=1 exit=0 valid=true wall=4.43s
+[19:55:50] round 4 P=4 cpuset=8-11
+[19:55:51 r4-P4] selftest: pass
+[19:55:55 r4-P4] 1/11 s2-chan_owner-r99-g10000-p4-w0 attempt=1 exit=0 valid=true wall=4.41s
+[19:55:59 r4-P4] 2/11 s1-chan_oneway-g1-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:56:04 r4-P4] 3/11 s1-rwmutex-g16-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:56:08 r4-P4] 4/11 s1-chan_oneway-g1-p4-w100 attempt=1 exit=0 valid=true wall=4.36s
+[19:56:12 r4-P4] 5/11 s1-mutex-g16-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:56:17 r4-P4] 6/11 s1-chan_reqresp-g10000-p4-w100 attempt=1 exit=0 valid=true wall=4.41s
+[19:56:21 r4-P4] 7/11 s3-cond1024-g64-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:56:26 r4-P4] 8/11 s3-chan0-g10000-p4-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:56:30 r4-P4] 9/11 s2-mutex-r50-g1024-p4-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:56:34 r4-P4] 10/11 s2-rwmutex-r99-g10000-p4-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[19:56:39 r4-P4] 11/11 s1-rwmutex-g10000-p4-w0 attempt=1 exit=0 valid=true wall=4.41s
+ok    linux-metal profile  isolated 8-15, system 0-7, cpusets {"1":"8","2":"8-9","4":"8-11","8":"8-15"}
+ok    cpu sets             online 0-15; measurement cpusets inside isolated 8-15
+ok    L3 topology          isolated 8-15 = one L3 domain; system 0-7 = another
+ok    virtualization       bare metal (systemd-detect-virt: none; no hypervisor flag)
+ok    SMT off              smt/control=off smt/active=0
+ok    isolcpus             isolcpus=managed_irq,8-15, no domain isolation
+ok    nohz_full            nohz_full=8-15
+ok    process affinity     PID 1 Cpus_allowed_list=0-7
+ok    governor             driver amd-pstate-epp (active): performance x16; EPP performance
+ok    boost off            17 boost control(s) read 0
+ok    IRQ affinity         65 IRQs, none movable on isolated CPUs; 10 pinned by their mask (irq.pinned_to_isolated), 10 of them not verified as kernel-managed (/sys/kernel/debug/irq/irqs unreadable; run with sudo to verify)
+ok    load                 skipped in phase round-5 (E1 gates the load); loadavg 0.94 2.07 2.17 1/482 163696
+ok    sleep                sleep/suspend/hibernate/hybrid-sleep targets masked
+ok    background services  none of 11 units active
+ok    docker               /usr/bin/docker, server 29.9.1, systemd cgroup v2
+host-check: passed (round-5)
+[19:57:44] round 5 P=8 cpuset=8-15
+[19:57:44 r5-P8] selftest: pass
+[19:57:48 r5-P8] 1/28 s3-chan1024-g64-p8-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[19:57:53 r5-P8] 2/28 s2-rwmutex-r99-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[19:57:57 r5-P8] 3/28 s2-mutex-r50-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.38s
+[19:58:02 r5-P8] 4/28 s3-cond1024-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.43s
+[19:58:06 r5-P8] 5/28 s2-mutex-r90-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.42s
+[19:58:10 r5-P8] 6/28 s2-mutex-r90-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:58:15 r5-P8] 7/28 s2-mutex-r50-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.50s
+[19:58:19 r5-P8] 8/28 s1-rwmutex-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.41s
+[19:58:24 r5-P8] 9/28 s3-cond1024-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.43s
+[19:58:28 r5-P8] 10/28 s3-cond64-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:58:33 r5-P8] 11/28 s3-chan0-g1024-p8-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[19:58:37 r5-P8] 12/28 s2-mutex-r50-g64-p8-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:58:41 r5-P8] 13/28 s3-chan64-g64-p8-w1000 attempt=1 exit=0 valid=true wall=4.36s
+[19:58:46 r5-P8] 14/28 s3-chan0-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:58:50 r5-P8] 15/28 s1-mutex-g1024-p8-w100 attempt=1 exit=0 valid=true wall=4.39s
+[19:58:54 r5-P8] 16/28 s2-mutex-r99-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.43s
+[19:58:59 r5-P8] 17/28 s1-rwmutex-g256-p8-w0 attempt=1 exit=0 valid=true wall=4.36s
+[19:59:03 r5-P8] 18/28 s3-cond64-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.45s
+[19:59:08 r5-P8] 19/28 s3-chan1-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[19:59:12 r5-P8] 20/28 s3-cond64-g10000-p8-w0 attempt=1 exit=0 valid=true wall=4.45s
+[19:59:17 r5-P8] 21/28 s3-chan1024-g10000-p8-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[19:59:21 r5-P8] 22/28 s1-rwmutex-g10000-p8-w100 attempt=1 exit=0 valid=true wall=4.42s
+[19:59:25 r5-P8] 23/28 s3-cond1024-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.40s
+[19:59:30 r5-P8] 24/28 s3-chan1024-g1024-p8-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[19:59:34 r5-P8] 25/28 s1-mutex-g1024-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:59:39 r5-P8] 26/28 s2-mutex-r99-g64-p8-w0 attempt=1 exit=0 valid=true wall=4.38s
+[19:59:43 r5-P8] 27/28 s2-mutex-r90-g64-p8-w0 attempt=1 exit=0 valid=true wall=4.37s
+[19:59:47 r5-P8] 28/28 s3-chan64-g1024-p8-w1000 attempt=1 exit=0 valid=true wall=4.40s
+[20:00:50] round 5 P=1 cpuset=8
+[20:00:51 r5-P1] selftest: pass
+[20:00:55 r5-P1] 1/4 s1-mutex-g1024-p1-w0 attempt=1 exit=0 valid=true wall=4.39s
+[20:00:59 r5-P1] 2/4 s2-rwmutex-r99-g10000-p1-w0 attempt=1 exit=0 valid=true wall=4.42s
+[20:01:04 r5-P1] 3/4 s3-cond64-g1024-p1-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[20:01:08 r5-P1] 4/4 s3-cond64-g64-p1-w0 attempt=1 exit=0 valid=true wall=4.36s
+[20:02:11] round 5 P=2 cpuset=8-9
+[20:02:11 r5-P2] selftest: pass
+[20:02:16 r5-P2] 1/32 s1-mutex-g4-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[20:02:22 r5-P2] 2/32 s3-chan1-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=5.96s
+[20:02:26 r5-P2] 3/32 s1-mutex-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.37s
+[20:02:31 r5-P2] 4/32 s1-chan_reqresp-g16-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[20:02:35 r5-P2] 5/32 s1-chan_oneway-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.39s
+[20:02:39 r5-P2] 6/32 s1-rwmutex-g10000-p2-w0 attempt=1 exit=0 valid=true wall=4.44s
+[20:02:44 r5-P2] 7/32 s3-chan1024-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[20:02:48 r5-P2] 8/32 s3-cond64-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[20:02:52 r5-P2] 9/32 s1-chan_reqresp-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[20:02:57 r5-P2] 10/32 s1-mutex-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[20:03:01 r5-P2] 11/32 s3-chan0-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.41s
+[20:03:06 r5-P2] 12/32 s2-rwmutex-r90-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.37s
+[20:03:10 r5-P2] 13/32 s1-chan_reqresp-g256-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[20:03:14 r5-P2] 14/32 s1-rwmutex-g256-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[20:03:19 r5-P2] 15/32 s2-rwmutex-r99-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.37s
+[20:03:23 r5-P2] 16/32 s2-rwmutex-r99-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[20:03:28 r5-P2] 17/32 s1-mutex-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[20:03:32 r5-P2] 18/32 s1-rwmutex-g1024-p2-w100 attempt=1 exit=0 valid=true wall=4.36s
+[20:03:36 r5-P2] 19/32 s1-atomic-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.39s
+[20:03:41 r5-P2] 20/32 s3-cond1024-g1024-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[20:03:45 r5-P2] 21/32 s1-mutex-g256-p2-w0 attempt=1 exit=0 valid=true wall=4.38s
+[20:03:49 r5-P2] 22/32 s2-rwmutex-r99-g64-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[20:03:54 r5-P2] 23/32 s1-mutex-g16-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[20:03:58 r5-P2] 24/32 s3-cond1024-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=4.42s
+[20:04:03 r5-P2] 25/32 s1-mutex-g4-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[20:04:07 r5-P2] 26/32 s1-chan_oneway-g16-p2-w0 attempt=1 exit=0 valid=true wall=4.36s
+[20:04:11 r5-P2] 27/32 s3-cond1024-g10000-p2-w0 attempt=1 exit=0 valid=true wall=4.42s
+[20:04:16 r5-P2] 28/32 s2-rwmutex-r99-g1024-p2-w1000 attempt=1 exit=0 valid=true wall=4.37s
+[20:04:20 r5-P2] 29/32 s1-rwmutex-g10000-p2-w100 attempt=1 exit=0 valid=true wall=4.41s
+[20:04:24 r5-P2] 30/32 s1-mutex-g16-p2-w1000 attempt=1 exit=0 valid=true wall=4.36s
+[20:04:29 r5-P2] 31/32 s1-chan_reqresp-g10000-p2-w0 attempt=1 exit=0 valid=true wall=4.41s
+[20:04:45 r5-P2] 32/32 s3-chan64-g10000-p2-w1000 attempt=1 exit=0 valid=true wall=15.72s
+[20:05:48] round 5 P=4 cpuset=8-11
+[20:05:48 r5-P4] selftest: pass
+[20:05:52 r5-P4] 1/11 s1-mutex-g16-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[20:05:57 r5-P4] 2/11 s3-cond1024-g64-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[20:06:01 r5-P4] 3/11 s1-chan_reqresp-g10000-p4-w100 attempt=1 exit=0 valid=true wall=4.41s
+[20:06:05 r5-P4] 4/11 s1-rwmutex-g10000-p4-w0 attempt=1 exit=0 valid=true wall=4.41s
+[20:06:10 r5-P4] 5/11 s1-chan_oneway-g1-p4-w100 attempt=1 exit=0 valid=true wall=4.36s
+[20:06:14 r5-P4] 6/11 s2-mutex-r50-g1024-p4-w0 attempt=1 exit=0 valid=true wall=4.37s
+[20:06:19 r5-P4] 7/11 s1-rwmutex-g16-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[20:06:23 r5-P4] 8/11 s1-chan_oneway-g1-p4-w0 attempt=1 exit=0 valid=true wall=4.36s
+[20:06:27 r5-P4] 9/11 s2-chan_owner-r99-g10000-p4-w0 attempt=1 exit=0 valid=true wall=4.43s
+[20:06:32 r5-P4] 10/11 s2-rwmutex-r99-g10000-p4-w1000 attempt=1 exit=0 valid=true wall=4.44s
+[20:06:36 r5-P4] 11/11 s3-chan0-g10000-p4-w1000 attempt=1 exit=0 valid=true wall=4.41s
+ok    linux-metal profile  isolated 8-15, system 0-7, cpusets {"1":"8","2":"8-9","4":"8-11","8":"8-15"}
+ok    cpu sets             online 0-15; measurement cpusets inside isolated 8-15
+ok    L3 topology          isolated 8-15 = one L3 domain; system 0-7 = another
+ok    virtualization       bare metal (systemd-detect-virt: none; no hypervisor flag)
+ok    SMT off              smt/control=off smt/active=0
+ok    isolcpus             isolcpus=managed_irq,8-15, no domain isolation
+ok    nohz_full            nohz_full=8-15
+ok    process affinity     PID 1 Cpus_allowed_list=0-7
+ok    governor             driver amd-pstate-epp (active): performance x16; EPP performance
+ok    boost off            17 boost control(s) read 0
+ok    IRQ affinity         65 IRQs, none movable on isolated CPUs; 10 pinned by their mask (irq.pinned_to_isolated), 10 of them not verified as kernel-managed (/sys/kernel/debug/irq/irqs unreadable; run with sudo to verify)
+ok    load                 skipped in phase end (E1 gates the load); loadavg 0.72 1.66 2.12 2/480 168396
+ok    sleep                sleep/suspend/hibernate/hybrid-sleep targets masked
+ok    background services  none of 11 units active
+ok    docker               /usr/bin/docker, server 29.9.1, systemd cgroup v2
+host-check: passed (end)
+[20:07:41] run 2026-10-18 done; results in /home/muhammet/go-sync-bench/results/2026-10-18/rerun

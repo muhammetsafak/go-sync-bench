@@ -1,0 +1,254 @@
+{
+ "cell_id": "s2-mutex-r90-g4-p1-w1000",
+ "scenario": "s2",
+ "impl": "mutex",
+ "G": 4,
+ "P": 1,
+ "W_nominal_ns": 1000,
+ "W_realized_ns": 1000.3316080000001,
+ "W_iters": 796,
+ "read_ratio": 90,
+ "round": 3,
+ "rep_seed": 8237930372496527873,
+ "order_seed": 640996940,
+ "set": "main",
+ "env": {
+  "go_version": "go1.27.1",
+  "gomaxprocs": 1,
+  "rt_gomaxprocs": 1,
+  "num_cpu": 1,
+  "cpuset": "8",
+  "clock_resolution_ns": 19,
+  "clock_read_ns": 21.508247,
+  "selftest_result": "pass"
+ },
+ "calib": {
+  "warmup_ns_per_iter": 1.256698,
+  "start_ns_per_iter": 1.256698,
+  "end_ns_per_iter": 1.259237,
+  "drift": 0.002020374027809264
+ },
+ "windows": {
+  "warmup_s": 0.5,
+  "throughput_s": 1.5,
+  "latency_s": 2
+ },
+ "throughput": {
+  "window_s": 1.510092559,
+  "ops": 1492511,
+  "ops_per_sec": 988357.2971105541,
+  "ns_per_op": 1011.7798522087944,
+  "per_goroutine_ops": [
+   418972,
+   397604,
+   357839,
+   318096
+  ],
+  "summary": {
+   "n": 4,
+   "min": 318096,
+   "max": 418972,
+   "median": 377721.5,
+   "zero": 0,
+   "jain": 0.989405858729608,
+   "min_max": 0.759229733729223
+  },
+  "fairness_jain": 0.989405858729608,
+  "fairness_min_max": 0.759229733729223,
+  "zero_op_goroutines": 0,
+  "drain_ops": 0,
+  "cpu_user_s": 1.5077139999999998,
+  "cpu_sys_s": 0.00237,
+  "cpu_per_op_ns": 1011.7741175776928,
+  "rt_mutex_wait_s": 1.7704115280000001,
+  "rt_sched_latency_p50_p99": [
+   6.4e-7,
+   0.02097152
+  ],
+  "rt_sched_latency_samples": 40,
+  "gc_cycles": 0,
+  "window_tail_frac": 0.000008096969304389368,
+  "drain_frac": 0.000004807652323515621,
+  "drain_s": 0.00000726
+ },
+ "latency": {
+  "window_s": 2.010485611,
+  "ops": 1976046,
+  "sample_rate": "1/16",
+  "sample_count": 123503,
+  "post_window_samples": 1,
+  "op_latency_hist": {
+   "n": 123503,
+   "p50": 1151,
+   "p99": 1151,
+   "p999": 1279,
+   "max": 40235039,
+   "buckets": [
+    [
+     1151,
+     122942
+    ],
+    [
+     1279,
+     459
+    ],
+    [
+     1407,
+     55
+    ],
+    [
+     1535,
+     4
+    ],
+    [
+     3583,
+     2
+    ],
+    [
+     3839,
+     3
+    ],
+    [
+     4095,
+     1
+    ],
+    [
+     4607,
+     5
+    ],
+    [
+     5119,
+     16
+    ],
+    [
+     10239,
+     5
+    ],
+    [
+     11263,
+     2
+    ],
+    [
+     15359,
+     2
+    ],
+    [
+     16383,
+     2
+    ],
+    [
+     20971519,
+     1
+    ],
+    [
+     41943039,
+     4
+    ]
+   ]
+  },
+  "acquire_wait_hist": {
+   "n": 123503,
+   "p50": 31,
+   "p99": 43,
+   "p999": 143,
+   "max": 20118809,
+   "buckets": [
+    [
+     21,
+     23210
+    ],
+    [
+     29,
+     5
+    ],
+    [
+     31,
+     69727
+    ],
+    [
+     39,
+     3
+    ],
+    [
+     43,
+     29769
+    ],
+    [
+     51,
+     29
+    ],
+    [
+     63,
+     28
+    ],
+    [
+     71,
+     21
+    ],
+    [
+     87,
+     13
+    ],
+    [
+     127,
+     75
+    ],
+    [
+     143,
+     610
+    ],
+    [
+     175,
+     2
+    ],
+    [
+     191,
+     4
+    ],
+    [
+     319,
+     1
+    ],
+    [
+     9215,
+     1
+    ],
+    [
+     20971519,
+     5
+    ]
+   ]
+  },
+  "waits_over_1ms_sampled": 5,
+  "waits_over_1ms_est": 80,
+  "slow_share_by_threshold_us": {
+   "1": 0.0000485818158263362,
+   "10": 0.00004048484652194683,
+   "1000": 0.00004048484652194683,
+   "2": 0.0000485818158263362,
+   "20": 0.00004048484652194683,
+   "5": 0.0000485818158263362
+  },
+  "starving_fraction": 0,
+  "starving_samples": 100,
+  "ops_ratio": 0.9944480671231123
+ },
+ "fairness": {
+  "quantum_bound_raw": 37.5,
+  "quantum_bound": 1,
+  "expected_quantum_jain": 0.9998222538215429,
+  "slow_acquire_share": 0.00004048484652194683,
+  "fairness_source": "sync"
+ },
+ "correctness": {
+  "ok": true,
+  "detail": "warmup: keys=1024 unwritten_keys=0 writes=51216 | throughput: keys=1024 unwritten_keys=0 writes=149332 | latency: keys=1024 unwritten_keys=0 writes=197459"
+ },
+ "gates": {
+  "g1_correct": true,
+  "g2_cpuset": true,
+  "g3_barrier": true,
+  "valid": true
+ },
+ "wall_s": 4.397042397
+}

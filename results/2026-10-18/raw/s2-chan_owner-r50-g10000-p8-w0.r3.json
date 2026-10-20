@@ -1,0 +1,245 @@
+{
+ "cell_id": "s2-chan_owner-r50-g10000-p8-w0",
+ "scenario": "s2",
+ "impl": "chan_owner",
+ "G": 10000,
+ "P": 8,
+ "W_nominal_ns": 0,
+ "W_realized_ns": 0,
+ "W_iters": 0,
+ "read_ratio": 50,
+ "round": 3,
+ "rep_seed": 2965958492492338101,
+ "order_seed": 4096595856,
+ "set": "main",
+ "env": {
+  "go_version": "go1.27.1",
+  "gomaxprocs": 8,
+  "rt_gomaxprocs": 8,
+  "num_cpu": 8,
+  "cpuset": "8-15",
+  "clock_resolution_ns": 20,
+  "clock_read_ns": 21.748743,
+  "selftest_result": "pass"
+ },
+ "calib": {
+  "warmup_ns_per_iter": 1.283577,
+  "start_ns_per_iter": 1.290347,
+  "end_ns_per_iter": 1.290347,
+  "drift": 0
+ },
+ "windows": {
+  "warmup_s": 0.5,
+  "throughput_s": 1.5,
+  "latency_s": 2
+ },
+ "throughput": {
+  "window_s": 1.500789299,
+  "ops": 6418143,
+  "ops_per_sec": 4276511.702393209,
+  "ns_per_op": 233.835441030217,
+  "summary": {
+   "n": 10000,
+   "min": 639,
+   "max": 660,
+   "median": 642,
+   "zero": 0,
+   "jain": 0.9999986744820133,
+   "min_max": 0.9681818181818181
+  },
+  "fairness_jain": 0.9999986744820133,
+  "fairness_min_max": 0.9681818181818181,
+  "zero_op_goroutines": 0,
+  "applied": 0,
+  "drain_ops": 0,
+  "cpu_user_s": 3.728561,
+  "cpu_sys_s": 1.3804880000000002,
+  "cpu_per_op_ns": 796.0322791187422,
+  "rt_mutex_wait_s": 3.8814740960000003,
+  "rt_sched_latency_p50_p99": [
+   0.00008192,
+   0.00016384
+  ],
+  "rt_sched_latency_samples": 802326,
+  "gc_cycles": 0,
+  "window_tail_frac": 0.0011825794870609625,
+  "drain_frac": 0.0007055673975724424,
+  "drain_s": 0.001058908
+ },
+ "latency": {
+  "window_s": 2.000713923,
+  "ops": 8305919,
+  "sample_rate": "1/16",
+  "sample_count": 519204,
+  "post_window_samples": 614,
+  "op_latency_hist": {
+   "n": 519204,
+   "p50": 2621439,
+   "p99": 2883583,
+   "p999": 2883583,
+   "max": 3002743,
+   "buckets": [
+    [
+     575,
+     1
+    ],
+    [
+     703,
+     1
+    ],
+    [
+     1048575,
+     1
+    ],
+    [
+     1179647,
+     67
+    ],
+    [
+     1310719,
+     61
+    ],
+    [
+     1441791,
+     75
+    ],
+    [
+     1572863,
+     72
+    ],
+    [
+     1703935,
+     53
+    ],
+    [
+     1835007,
+     40
+    ],
+    [
+     1966079,
+     80
+    ],
+    [
+     2097151,
+     96
+    ],
+    [
+     2359295,
+     104363
+    ],
+    [
+     2621439,
+     408584
+    ],
+    [
+     2883583,
+     5628
+    ],
+    [
+     3145727,
+     82
+    ]
+   ]
+  },
+  "acquire_wait_hist": {
+   "n": 519204,
+   "p50": 2621439,
+   "p99": 2883583,
+   "p999": 2883583,
+   "max": 3002663,
+   "buckets": [
+    [
+     95,
+     1
+    ],
+    [
+     127,
+     1
+    ],
+    [
+     1048575,
+     1
+    ],
+    [
+     1179647,
+     67
+    ],
+    [
+     1310719,
+     61
+    ],
+    [
+     1441791,
+     75
+    ],
+    [
+     1572863,
+     72
+    ],
+    [
+     1703935,
+     53
+    ],
+    [
+     1835007,
+     40
+    ],
+    [
+     1966079,
+     80
+    ],
+    [
+     2097151,
+     96
+    ],
+    [
+     2359295,
+     104538
+    ],
+    [
+     2621439,
+     408412
+    ],
+    [
+     2883583,
+     5625
+    ],
+    [
+     3145727,
+     82
+    ]
+   ]
+  },
+  "waits_over_1ms_sampled": 519202,
+  "waits_over_1ms_est": 8307232,
+  "slow_share_by_threshold_us": {
+   "1": 0.9999961479495535,
+   "10": 0.9999961479495535,
+   "1000": 0.9999961479495535,
+   "2": 0.9999961479495535,
+   "20": 0.9999961479495535,
+   "5": 0.9999961479495535
+  },
+  "starving_fraction": null,
+  "starving_samples": null,
+  "ops_ratio": 0.9707625913923621
+ },
+ "fairness": {
+  "quantum_bound_raw": 0.12,
+  "quantum_bound": 0.12,
+  "expected_quantum_jain": 0.12,
+  "slow_acquire_share": 0.9999961479495535,
+  "fairness_source": "sync"
+ },
+ "correctness": {
+  "ok": true,
+  "detail": "warmup: keys=1024 unwritten_keys=0 writes=1062903 | throughput: keys=1024 unwritten_keys=0 writes=3205547 | latency: keys=1024 unwritten_keys=0 writes=4149554"
+ },
+ "gates": {
+  "g1_correct": true,
+  "g2_cpuset": true,
+  "g3_barrier": true,
+  "valid": true
+ },
+ "wall_s": 4.402674634
+}

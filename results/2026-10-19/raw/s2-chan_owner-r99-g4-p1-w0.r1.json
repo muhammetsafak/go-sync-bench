@@ -1,0 +1,355 @@
+{
+ "cell_id": "s2-chan_owner-r99-g4-p1-w0",
+ "scenario": "s2",
+ "impl": "chan_owner",
+ "G": 4,
+ "P": 1,
+ "W_nominal_ns": 0,
+ "W_realized_ns": 0,
+ "W_iters": 0,
+ "read_ratio": 99,
+ "round": 1,
+ "rep_seed": 10044248933685920614,
+ "order_seed": 640996940,
+ "set": "main",
+ "env": {
+  "go_version": "go1.27.1",
+  "gomaxprocs": 1,
+  "rt_gomaxprocs": 1,
+  "num_cpu": 1,
+  "cpuset": "8",
+  "clock_resolution_ns": 19,
+  "clock_read_ns": 21.538444,
+  "selftest_result": "pass"
+ },
+ "calib": {
+  "warmup_ns_per_iter": 1.256698,
+  "start_ns_per_iter": 1.266578,
+  "end_ns_per_iter": 1.265598,
+  "drift": 0.0007737383722123556
+ },
+ "windows": {
+  "warmup_s": 0.5,
+  "throughput_s": 1.5,
+  "latency_s": 2
+ },
+ "throughput": {
+  "window_s": 1.500000676,
+  "ops": 5592534,
+  "ops_per_sec": 3728354.3197549866,
+  "ns_per_op": 268.2148514430131,
+  "per_goroutine_ops": [
+   1829516,
+   1162797,
+   1000475,
+   1599746
+  ],
+  "summary": {
+   "n": 4,
+   "min": 1000475,
+   "max": 1829516,
+   "median": 1381271.5,
+   "zero": 0,
+   "jain": 0.9466963730194369,
+   "min_max": 0.5468522822429539
+  },
+  "fairness_jain": 0.9466963730194369,
+  "fairness_min_max": 0.5468522822429539,
+  "zero_op_goroutines": 0,
+  "applied": 0,
+  "drain_ops": 0,
+  "cpu_user_s": 1.497578,
+  "cpu_sys_s": 0.0024259999999999993,
+  "cpu_per_op_ns": 268.21544580685605,
+  "rt_mutex_wait_s": 0.00004856,
+  "rt_sched_latency_p50_p99": [
+   1.28e-7,
+   1.28e-7
+  ],
+  "rt_sched_latency_samples": 1398128,
+  "gc_cycles": 0,
+  "window_tail_frac": 0,
+  "drain_frac": 0.0000027599987561605606,
+  "drain_s": 0.00000414
+ },
+ "latency": {
+  "window_s": 2.000000665,
+  "ops": 7355223,
+  "sample_rate": "1/16",
+  "sample_count": 459702,
+  "post_window_samples": 0,
+  "op_latency_hist": {
+   "n": 459702,
+   "p50": 319,
+   "p99": 383,
+   "p999": 415,
+   "max": 140825516,
+   "buckets": [
+    [
+     287,
+     49289
+    ],
+    [
+     319,
+     267465
+    ],
+    [
+     351,
+     136594
+    ],
+    [
+     383,
+     5847
+    ],
+    [
+     415,
+     368
+    ],
+    [
+     447,
+     36
+    ],
+    [
+     479,
+     24
+    ],
+    [
+     511,
+     9
+    ],
+    [
+     575,
+     12
+    ],
+    [
+     639,
+     2
+    ],
+    [
+     703,
+     6
+    ],
+    [
+     767,
+     4
+    ],
+    [
+     831,
+     7
+    ],
+    [
+     895,
+     4
+    ],
+    [
+     959,
+     1
+    ],
+    [
+     3327,
+     2
+    ],
+    [
+     4095,
+     10
+    ],
+    [
+     4607,
+     8
+    ],
+    [
+     5119,
+     1
+    ],
+    [
+     6143,
+     1
+    ],
+    [
+     7167,
+     1
+    ],
+    [
+     10239,
+     4
+    ],
+    [
+     20971519,
+     3
+    ],
+    [
+     50331647,
+     1
+    ],
+    [
+     75497471,
+     1
+    ],
+    [
+     134217727,
+     1
+    ],
+    [
+     150994943,
+     1
+    ]
+   ]
+  },
+  "acquire_wait_hist": {
+   "n": 459702,
+   "p50": 63,
+   "p99": 87,
+   "p999": 95,
+   "max": 140825426,
+   "buckets": [
+    [
+     51,
+     153741
+    ],
+    [
+     59,
+     23
+    ],
+    [
+     63,
+     237404
+    ],
+    [
+     71,
+     43959
+    ],
+    [
+     79,
+     4
+    ],
+    [
+     87,
+     23445
+    ],
+    [
+     95,
+     741
+    ],
+    [
+     103,
+     252
+    ],
+    [
+     111,
+     67
+    ],
+    [
+     127,
+     17
+    ],
+    [
+     143,
+     1
+    ],
+    [
+     159,
+     1
+    ],
+    [
+     175,
+     12
+    ],
+    [
+     191,
+     8
+    ],
+    [
+     207,
+     5
+    ],
+    [
+     223,
+     3
+    ],
+    [
+     383,
+     1
+    ],
+    [
+     415,
+     2
+    ],
+    [
+     447,
+     1
+    ],
+    [
+     511,
+     1
+    ],
+    [
+     575,
+     4
+    ],
+    [
+     3839,
+     2
+    ],
+    [
+     4095,
+     2
+    ],
+    [
+     10239,
+     1
+    ],
+    [
+     20971519,
+     1
+    ],
+    [
+     50331647,
+     1
+    ],
+    [
+     75497471,
+     1
+    ],
+    [
+     134217727,
+     1
+    ],
+    [
+     150994943,
+     1
+    ]
+   ]
+  },
+  "waits_over_1ms_sampled": 5,
+  "waits_over_1ms_est": 80,
+  "slow_share_by_threshold_us": {
+   "1": 0.000021753222739948925,
+   "10": 0.000010876611369974463,
+   "1000": 0.000010876611369974463,
+   "2": 0.000021753222739948925,
+   "20": 0.000010876611369974463,
+   "5": 0.000013051933643969354
+  },
+  "starving_fraction": null,
+  "starving_samples": null,
+  "ops_ratio": 0.9863896941630433
+ },
+ "fairness": {
+  "quantum_bound_raw": 37.5,
+  "quantum_bound": 1,
+  "expected_quantum_jain": 0.9998222538215429,
+  "slow_acquire_share": 0.000010876611369974463,
+  "fairness_source": "sync"
+ },
+ "correctness": {
+  "ok": true,
+  "detail": "warmup: keys=1024 unwritten_keys=0 writes=18571 | throughput: keys=1024 unwritten_keys=0 writes=55839 | latency: keys=1024 unwritten_keys=0 writes=73577"
+ },
+ "gates": {
+  "g1_correct": true,
+  "g2_cpuset": true,
+  "g3_barrier": true,
+  "valid": true
+ },
+ "wall_s": 4.359321864
+}

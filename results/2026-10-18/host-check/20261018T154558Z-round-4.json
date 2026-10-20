@@ -1,0 +1,278 @@
+{
+  "schema": "host-check/1",
+  "profile": "linux-metal",
+  "phase": "round-4",
+  "checked_at": "2026-10-18T15:45:59Z",
+  "host_check": {
+    "passed": true,
+    "failed": [],
+    "checks": [
+      {
+        "name": "linux-metal profile",
+        "ok": true,
+        "detail": "isolated 8-15, system 0-7, cpusets {\"1\":\"8\",\"2\":\"8-9\",\"4\":\"8-11\",\"8\":\"8-15\"}"
+      },
+      {
+        "name": "cpu sets",
+        "ok": true,
+        "detail": "online 0-15; measurement cpusets inside isolated 8-15"
+      },
+      {
+        "name": "L3 topology",
+        "ok": true,
+        "detail": "isolated 8-15 = one L3 domain; system 0-7 = another"
+      },
+      {
+        "name": "virtualization",
+        "ok": true,
+        "detail": "bare metal (systemd-detect-virt: none; no hypervisor flag)"
+      },
+      {
+        "name": "SMT off",
+        "ok": true,
+        "detail": "smt/control=off smt/active=0"
+      },
+      {
+        "name": "isolcpus",
+        "ok": true,
+        "detail": "isolcpus=managed_irq,8-15, no domain isolation"
+      },
+      {
+        "name": "nohz_full",
+        "ok": true,
+        "detail": "nohz_full=8-15"
+      },
+      {
+        "name": "process affinity",
+        "ok": true,
+        "detail": "PID 1 Cpus_allowed_list=0-7"
+      },
+      {
+        "name": "governor",
+        "ok": true,
+        "detail": "driver amd-pstate-epp (active): performance x16; EPP performance"
+      },
+      {
+        "name": "boost off",
+        "ok": true,
+        "detail": "17 boost control(s) read 0"
+      },
+      {
+        "name": "IRQ affinity",
+        "ok": true,
+        "detail": "65 IRQs, none movable on isolated CPUs; 10 pinned by their mask (irq.pinned_to_isolated), 10 of them not verified as kernel-managed (/sys/kernel/debug/irq/irqs unreadable; run with sudo to verify)"
+      },
+      {
+        "name": "load",
+        "ok": true,
+        "detail": "skipped in phase round-4 (E1 gates the load); loadavg 0.39 0.91 1.80 1/476 118506"
+      },
+      {
+        "name": "sleep",
+        "ok": true,
+        "detail": "sleep/suspend/hibernate/hybrid-sleep targets masked"
+      },
+      {
+        "name": "background services",
+        "ok": true,
+        "detail": "none of 11 units active"
+      },
+      {
+        "name": "docker",
+        "ok": true,
+        "detail": "/usr/bin/docker, server 29.9.1, systemd cgroup v2"
+      }
+    ]
+  },
+  "host": {
+    "boot_id": "7c91d201-07b8-4499-a967-8bd92245c976",
+    "kernel": "7.0.0-38-generic",
+    "kernel_version": "#38-Ubuntu SMP PREEMPT_DYNAMIC Fri Sep  4 09:10:14 UTC 2026",
+    "arch": "x86_64",
+    "cpu_model": "AMD Ryzen 9 5950X 16-Core Processor",
+    "microcode": "0xa201213",
+    "cmdline": "BOOT_IMAGE=/boot/vmlinuz-7.0.0-38-generic root=UUID=ef003a1b-fb20-4b20-8e6c-57bf18b178a3 ro quiet splash nosmt isolcpus=managed_irq,8-15 nohz_full=8-15 rcu_nocbs=8-15 irqaffinity=0-7 crashkernel=2G-4G:320M,4G-32G:512M,32G-64G:1024M,64G-128G:2048M,128G-:4096M",
+    "virtualization": {
+      "systemd_detect_virt": "none",
+      "hypervisor_flag": false
+    },
+    "cmdline_params": {
+      "isolcpus": "managed_irq,8-15",
+      "nohz_full": "8-15",
+      "rcu_nocbs": "8-15",
+      "irqaffinity": "0-7",
+      "nosmt": true
+    }
+  },
+  "cpu": {
+    "online": "0-15",
+    "isolated": "8-15",
+    "system": "0-7",
+    "cpusets": {
+      "1": "8",
+      "2": "8-9",
+      "4": "8-11",
+      "8": "8-15"
+    },
+    "l3_domains": {
+      "isolated": "8-15",
+      "system": "0-7"
+    },
+    "smt": {
+      "control": "off",
+      "active": "0"
+    },
+    "kernel_isolated": null,
+    "init_affinity": "0-7",
+    "kernel_nohz_full": "8-15",
+    "cpufreq": {
+      "driver": "amd-pstate-epp",
+      "amd_pstate_status": "active",
+      "governors": "performance x16",
+      "epp": "performance"
+    },
+    "boost": {
+      "global": "0",
+      "controls": 17,
+      "cpb_flag": true,
+      "nominal_khz": null,
+      "cpuinfo_max_freq_khz": {
+        "cpu8": 3401000,
+        "cpu9": 3401000,
+        "cpu10": 3401000,
+        "cpu11": 3401000,
+        "cpu12": 3401000,
+        "cpu13": 3401000,
+        "cpu14": 3401000,
+        "cpu15": 3401000
+      }
+    },
+    "cpuidle": {
+      "driver": "acpi_idle",
+      "states": "POLL C1 C2(disabled)"
+    }
+  },
+  "irq": {
+    "checked": 65,
+    "unreadable": 0,
+    "on_isolated": [],
+    "pinned_to_isolated": [
+      {
+        "irq": 71,
+        "affinity": "8",
+        "effective": "8",
+        "name": "IR-PCI-MSIX-0000:04:00.0 9-edge nvme1q9",
+        "managed": null
+      },
+      {
+        "irq": 72,
+        "affinity": "9",
+        "effective": "9",
+        "name": "IR-PCI-MSIX-0000:04:00.0 10-edge nvme1q10",
+        "managed": null
+      },
+      {
+        "irq": 73,
+        "affinity": "10",
+        "effective": "10",
+        "name": "IR-PCI-MSIX-0000:04:00.0 11-edge nvme1q11",
+        "managed": null
+      },
+      {
+        "irq": 74,
+        "affinity": "11",
+        "effective": "11",
+        "name": "IR-PCI-MSIX-0000:04:00.0 12-edge nvme1q12",
+        "managed": null
+      },
+      {
+        "irq": 75,
+        "affinity": "12",
+        "effective": "12",
+        "name": "IR-PCI-MSIX-0000:04:00.0 13-edge nvme1q13",
+        "managed": null
+      },
+      {
+        "irq": 76,
+        "affinity": "13",
+        "effective": "13",
+        "name": "IR-PCI-MSIX-0000:04:00.0 14-edge nvme1q14",
+        "managed": null
+      },
+      {
+        "irq": 77,
+        "affinity": "14",
+        "effective": "14",
+        "name": "IR-PCI-MSIX-0000:04:00.0 15-edge nvme1q15",
+        "managed": null
+      },
+      {
+        "irq": 78,
+        "affinity": "15",
+        "effective": "15",
+        "name": "IR-PCI-MSIX-0000:04:00.0 16-edge nvme1q16",
+        "managed": null
+      },
+      {
+        "irq": 97,
+        "affinity": "8-11",
+        "effective": "11",
+        "name": "IR-PCI-MSIX-0000:01:00.0 3-edge nvme0q3",
+        "managed": null
+      },
+      {
+        "irq": 98,
+        "affinity": "12-15",
+        "effective": "15",
+        "name": "IR-PCI-MSIX-0000:01:00.0 4-edge nvme0q4",
+        "managed": null
+      }
+    ]
+  },
+  "load": {
+    "loadavg": "0.39 0.91 1.80 1/476 118506",
+    "limit": 1.0,
+    "skipped": true
+  },
+  "systemd": {
+    "sleep_units": {
+      "sleep.target": "masked",
+      "suspend.target": "masked",
+      "hibernate.target": "masked",
+      "hybrid-sleep.target": "masked"
+    },
+    "services": {
+      "unattended-upgrades.service": "inactive",
+      "snapd.service": "inactive",
+      "snapd.socket": "inactive",
+      "apt-daily.timer": "inactive",
+      "apt-daily-upgrade.timer": "inactive",
+      "apt-daily.service": "inactive",
+      "apt-daily-upgrade.service": "inactive",
+      "fwupd.service": "inactive",
+      "fwupd-refresh.timer": "inactive",
+      "motd-news.timer": "inactive",
+      "irqbalance.service": "inactive"
+    }
+  },
+  "docker": {
+    "path": "/usr/bin/docker",
+    "server_version": "29.9.1",
+    "cgroup": "systemd cgroup v2",
+    "snap": false,
+    "cgroup_fs": "cgroup2fs"
+  },
+  "tunables": {
+    "transparent_hugepage": "always [madvise] never",
+    "numa_balancing": "0",
+    "randomize_va_space": "2"
+  },
+  "temperature": {
+    "source": "hwmon2 k10temp",
+    "celsius": {
+      "Tctl": 38.5,
+      "Tccd1": 40.75,
+      "Tccd2": 31.75
+    }
+  }
+}

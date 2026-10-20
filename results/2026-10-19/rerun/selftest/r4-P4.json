@@ -1,0 +1,30 @@
+{
+ "go_version": "go1.27.1",
+ "gomaxprocs": 2,
+ "layout_ok": true,
+ "layout_detail": "sizeof=8, locked bit 0/1/0",
+ "valid_trials": 5,
+ "passed_trials": 5,
+ "setup_retries": 0,
+ "setup_invalid": {},
+ "setup_unstable": false,
+ "failures": [],
+ "sampler_seen_ms": [
+  1.005438,
+  1.002638,
+  1.001249,
+  1.003619,
+  1.003128
+ ],
+ "woken_clear_us": [
+  0.83,
+  0.65,
+  0.54,
+  0.57,
+  1.05
+ ],
+ "duration_s": 0.030928504,
+ "pass": true,
+ "result": "pass",
+ "trials_attempted": 5
+}

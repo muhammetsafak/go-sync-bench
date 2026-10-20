@@ -1,0 +1,250 @@
+{
+ "cell_id": "s2-mutex-r50-g4-p1-w1000",
+ "scenario": "s2",
+ "impl": "mutex",
+ "G": 4,
+ "P": 1,
+ "W_nominal_ns": 1000,
+ "W_realized_ns": 1000.3316080000001,
+ "W_iters": 796,
+ "read_ratio": 50,
+ "round": 4,
+ "rep_seed": 18269858373032178417,
+ "order_seed": 4096595856,
+ "set": "main",
+ "env": {
+  "go_version": "go1.27.1",
+  "gomaxprocs": 1,
+  "rt_gomaxprocs": 1,
+  "num_cpu": 1,
+  "cpuset": "8",
+  "clock_resolution_ns": 19,
+  "clock_read_ns": 21.531064,
+  "selftest_result": "pass"
+ },
+ "calib": {
+  "warmup_ns_per_iter": 1.256688,
+  "start_ns_per_iter": 1.256698,
+  "end_ns_per_iter": 1.256408,
+  "drift": 0.00023076347698502224
+ },
+ "windows": {
+  "warmup_s": 0.5,
+  "throughput_s": 1.5,
+  "latency_s": 2
+ },
+ "throughput": {
+  "window_s": 1.502429721,
+  "ops": 1479929,
+  "ops_per_sec": 985023.7780273518,
+  "ns_per_op": 1015.2039192420717,
+  "per_goroutine_ops": [
+   410081,
+   356645,
+   356645,
+   356558
+  ],
+  "summary": {
+   "n": 4,
+   "min": 356558,
+   "max": 410081,
+   "median": 356645,
+   "zero": 0,
+   "jain": 0.9960998390634159,
+   "min_max": 0.869481882847535
+  },
+  "fairness_jain": 0.9960998390634159,
+  "fairness_min_max": 0.869481882847535,
+  "zero_op_goroutines": 0,
+  "drain_ops": 0,
+  "cpu_user_s": 1.50107,
+  "cpu_sys_s": 0.0013629999999999996,
+  "cpu_per_op_ns": 1015.2061348889034,
+  "rt_mutex_wait_s": 1.287647176,
+  "rt_sched_latency_p50_p99": [
+   6.4e-7,
+   0.02097152
+  ],
+  "rt_sched_latency_samples": 40,
+  "gc_cycles": 0,
+  "window_tail_frac": 0,
+  "drain_frac": 0.000004332981376105246,
+  "drain_s": 0.00000651
+ },
+ "latency": {
+  "window_s": 2.010474749,
+  "ops": 1970580,
+  "sample_rate": "1/16",
+  "sample_count": 123162,
+  "post_window_samples": 0,
+  "op_latency_hist": {
+   "n": 123162,
+   "p50": 1151,
+   "p99": 1151,
+   "p999": 1279,
+   "max": 40234272,
+   "buckets": [
+    [
+     1151,
+     122377
+    ],
+    [
+     1279,
+     751
+    ],
+    [
+     1407,
+     4
+    ],
+    [
+     1663,
+     1
+    ],
+    [
+     5119,
+     6
+    ],
+    [
+     5631,
+     1
+    ],
+    [
+     10239,
+     8
+    ],
+    [
+     11263,
+     2
+    ],
+    [
+     12287,
+     1
+    ],
+    [
+     15359,
+     1
+    ],
+    [
+     16383,
+     2
+    ],
+    [
+     20971519,
+     5
+    ],
+    [
+     41943039,
+     3
+    ]
+   ]
+  },
+  "acquire_wait_hist": {
+   "n": 123162,
+   "p50": 31,
+   "p99": 43,
+   "p999": 143,
+   "max": 20120086,
+   "buckets": [
+    [
+     19,
+     1
+    ],
+    [
+     21,
+     25142
+    ],
+    [
+     29,
+     2
+    ],
+    [
+     31,
+     71277
+    ],
+    [
+     43,
+     25541
+    ],
+    [
+     51,
+     26
+    ],
+    [
+     63,
+     25
+    ],
+    [
+     71,
+     19
+    ],
+    [
+     87,
+     5
+    ],
+    [
+     127,
+     151
+    ],
+    [
+     143,
+     945
+    ],
+    [
+     159,
+     6
+    ],
+    [
+     175,
+     8
+    ],
+    [
+     191,
+     2
+    ],
+    [
+     207,
+     4
+    ],
+    [
+     11263,
+     1
+    ],
+    [
+     20971519,
+     7
+    ]
+   ]
+  },
+  "waits_over_1ms_sampled": 7,
+  "waits_over_1ms_est": 112,
+  "slow_share_by_threshold_us": {
+   "1": 0.00006495509978727205,
+   "10": 0.00006495509978727205,
+   "1000": 0.00005683571231386304,
+   "2": 0.00006495509978727205,
+   "20": 0.00005683571231386304,
+   "5": 0.00006495509978727205
+  },
+  "starving_fraction": 0.019801980198019802,
+  "starving_samples": 101,
+  "ops_ratio": 0.9950587741403369
+ },
+ "fairness": {
+  "quantum_bound_raw": 37.5,
+  "quantum_bound": 1,
+  "expected_quantum_jain": 0.9998222538215429,
+  "slow_acquire_share": 0.00006495509978727205,
+  "fairness_source": "sync"
+ },
+ "correctness": {
+  "ok": true,
+  "detail": "warmup: keys=1024 unwritten_keys=0 writes=254617 | throughput: keys=1024 unwritten_keys=0 writes=741223 | latency: keys=1024 unwritten_keys=0 writes=986831"
+ },
+ "gates": {
+  "g1_correct": true,
+  "g2_cpuset": true,
+  "g3_barrier": true,
+  "valid": true
+ },
+ "wall_s": 4.3892019829999995
+}

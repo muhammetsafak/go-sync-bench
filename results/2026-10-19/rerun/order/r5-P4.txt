@@ -1,0 +1,11 @@
+seed=3859364050 round=5 P=4
+s1-mutex-g16-p4-w0
+s2-rwmutex-r99-g10000-p4-w1000
+s1-chan_oneway-g1-p4-w100
+s3-chan64-g10000-p4-w0
+s3-cond64-g64-p4-w0
+s3-cond1024-g64-p4-w0
+s1-mutex-g1024-p4-w0
+s3-chan0-g1024-p4-w0
+s2-mutex-r90-g64-p4-w0
+s2-mutex-r50-g1024-p4-w0

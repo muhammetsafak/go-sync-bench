@@ -1,0 +1,46 @@
+{
+  "windows": { "warmup_s": 0.5, "throughput_s": 1.5, "latency_s": 2.0 },
+  "cpusets": { "1": "4", "2": "4-5", "4": "4-7", "8": "4-11" },
+  "profiles": {
+    "linux-metal": {
+      "isolated_cpus": "8-15",
+      "system_cpus": "0-7",
+      "cpusets": { "1": "8", "2": "8-9", "4": "8-11", "8": "8-15" }
+    }
+  },
+  "sets": {
+    "main": {
+      "rounds": 5,
+      "blocks": [
+        { "scenario": "s1", "impls": ["atomic"], "G": [1, 4, 16, 64, 256, 1024, 10000], "P": [1, 2, 4, 8], "W": [0] },
+        { "scenario": "s1", "impls": ["mutex", "rwmutex", "chan_reqresp", "chan_oneway"], "G": [1, 4, 16, 64, 256, 1024, 10000], "P": [1, 2, 4, 8], "W": [0, 100, 1000] },
+        { "scenario": "s2", "impls": ["mutex", "rwmutex", "chan_owner"], "read": [50, 90, 99], "G": [4, 64, 1024, 10000], "P": [1, 2, 4, 8], "W": [0, 1000] },
+        { "scenario": "s3", "impls": ["chan0", "chan1", "chan64", "chan1024", "cond64", "cond1024"], "G": [4, 64, 1024, 10000], "P": [1, 2, 4, 8], "W": [0, 1000] }
+      ],
+      "cells": [
+        { "scenario": "s1", "impl": "atomic", "G": 2, "P": 2, "W": 0, "note": "noise floor, P=2" }
+      ]
+    },
+    "smoke": {
+      "rounds": 3,
+      "blocks": [
+        { "scenario": "s1", "impls": ["mutex", "rwmutex", "chan_reqresp", "chan_oneway"], "G": [64], "P": [4], "W": [100] },
+        { "scenario": "s2", "impls": ["mutex", "rwmutex", "chan_owner"], "read": [90], "G": [64], "P": [4], "W": [0] },
+        { "scenario": "s3", "impls": ["chan0", "chan1", "chan64", "chan1024", "cond64", "cond1024"], "G": [64], "P": [4], "W": [0] }
+      ],
+      "cells": [
+        { "scenario": "s1", "impl": "mutex", "G": 256, "P": 1, "W": 0, "note": "label: unexplained expected (b<1, s<0.5)" },
+        { "scenario": "s1", "impl": "mutex", "G": 10000, "P": 8, "W": 0, "note": "label: unexplained expected (mutex barely parks at high G, s<0.5)" },
+        { "scenario": "s1", "impl": "chan_reqresp", "G": 10000, "P": 8, "W": 0, "note": "label: sync expected" },
+        { "scenario": "s1", "impl": "atomic", "G": 256, "P": 2, "W": 0, "note": "b'~1.17, expected Jain ~0.906" },
+        { "scenario": "s1", "impl": "atomic", "G": 1024, "P": 8, "W": 0, "note": "b'~1.17, expected Jain ~0.906" },
+        { "scenario": "s1", "impl": "atomic", "G": 2, "P": 2, "W": 0, "note": "noise floor, P=2" },
+        { "scenario": "s1", "impl": "atomic", "G": 4, "P": 4, "W": 0, "note": "noise floor, P=4" },
+        { "scenario": "s1", "impl": "atomic", "G": 4, "P": 8, "W": 0, "note": "noise floor, P=8" },
+        { "scenario": "s1", "impl": "atomic", "G": 64, "P": 4, "W": 0, "note": "coverage" },
+        { "scenario": "s1", "impl": "mutex", "G": 1, "P": 1, "W": 0, "note": "G=1: Jain undefined, written as null" },
+        { "scenario": "s1", "impl": "chan_reqresp", "G": 1, "P": 4, "W": 0, "note": "G=1: Jain undefined, written as null" }
+      ]
+    }
+  }
+}

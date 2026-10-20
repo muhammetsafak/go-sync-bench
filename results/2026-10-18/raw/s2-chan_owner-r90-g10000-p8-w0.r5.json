@@ -1,0 +1,261 @@
+{
+ "cell_id": "s2-chan_owner-r90-g10000-p8-w0",
+ "scenario": "s2",
+ "impl": "chan_owner",
+ "G": 10000,
+ "P": 8,
+ "W_nominal_ns": 0,
+ "W_realized_ns": 0,
+ "W_iters": 0,
+ "read_ratio": 90,
+ "round": 5,
+ "rep_seed": 5430795775440776057,
+ "order_seed": 4096595856,
+ "set": "main",
+ "env": {
+  "go_version": "go1.27.1",
+  "gomaxprocs": 8,
+  "rt_gomaxprocs": 8,
+  "num_cpu": 8,
+  "cpuset": "8-15",
+  "clock_resolution_ns": 19,
+  "clock_read_ns": 21.411102,
+  "selftest_result": "pass"
+ },
+ "calib": {
+  "warmup_ns_per_iter": 1.283458,
+  "start_ns_per_iter": 1.290357,
+  "end_ns_per_iter": 1.290357,
+  "drift": 0
+ },
+ "windows": {
+  "warmup_s": 0.5,
+  "throughput_s": 1.5,
+  "latency_s": 2
+ },
+ "throughput": {
+  "window_s": 1.500607743,
+  "ops": 6519400,
+  "ops_per_sec": 4344506.437749336,
+  "ns_per_op": 230.1757436267141,
+  "summary": {
+   "n": 10000,
+   "min": 649,
+   "max": 655,
+   "median": 652,
+   "zero": 0,
+   "jain": 0.9999987708995486,
+   "min_max": 0.9908396946564886
+  },
+  "fairness_jain": 0.9999987708995486,
+  "fairness_min_max": 0.9908396946564886,
+  "zero_op_goroutines": 0,
+  "applied": 0,
+  "drain_ops": 0,
+  "cpu_user_s": 3.749642,
+  "cpu_sys_s": 1.396633,
+  "cpu_per_op_ns": 789.3786237997361,
+  "rt_mutex_wait_s": 3.8847083199999997,
+  "rt_sched_latency_p50_p99": [
+   0.00008192,
+   0.00016384
+  ],
+  "rt_sched_latency_samples": 814983,
+  "gc_cycles": 0,
+  "window_tail_frac": 0.001172069637168008,
+  "drain_frac": 0.0006717198446443042,
+  "drain_s": 0.001007988
+ },
+ "latency": {
+  "window_s": 2.000808248,
+  "ops": 8477236,
+  "sample_rate": "1/16",
+  "sample_count": 529832,
+  "post_window_samples": 621,
+  "op_latency_hist": {
+   "n": 529832,
+   "p50": 2621439,
+   "p99": 2621439,
+   "p999": 2883583,
+   "max": 2958113,
+   "buckets": [
+    [
+     287,
+     2
+    ],
+    [
+     447,
+     1
+    ],
+    [
+     655359,
+     1
+    ],
+    [
+     983039,
+     2
+    ],
+    [
+     1048575,
+     4
+    ],
+    [
+     1179647,
+     51
+    ],
+    [
+     1310719,
+     79
+    ],
+    [
+     1441791,
+     69
+    ],
+    [
+     1572863,
+     49
+    ],
+    [
+     1703935,
+     86
+    ],
+    [
+     1835007,
+     81
+    ],
+    [
+     1966079,
+     155
+    ],
+    [
+     2097151,
+     179
+    ],
+    [
+     2359295,
+     259629
+    ],
+    [
+     2621439,
+     265223
+    ],
+    [
+     2883583,
+     4193
+    ],
+    [
+     3145727,
+     28
+    ]
+   ]
+  },
+  "acquire_wait_hist": {
+   "n": 529832,
+   "p50": 2621439,
+   "p99": 2621439,
+   "p999": 2883583,
+   "max": 2958053,
+   "buckets": [
+    [
+     63,
+     2
+    ],
+    [
+     95,
+     1
+    ],
+    [
+     655359,
+     1
+    ],
+    [
+     983039,
+     2
+    ],
+    [
+     1048575,
+     4
+    ],
+    [
+     1179647,
+     51
+    ],
+    [
+     1310719,
+     79
+    ],
+    [
+     1441791,
+     69
+    ],
+    [
+     1572863,
+     49
+    ],
+    [
+     1703935,
+     86
+    ],
+    [
+     1835007,
+     81
+    ],
+    [
+     1966079,
+     155
+    ],
+    [
+     2097151,
+     179
+    ],
+    [
+     2359295,
+     259936
+    ],
+    [
+     2621439,
+     264921
+    ],
+    [
+     2883583,
+     4188
+    ],
+    [
+     3145727,
+     28
+    ]
+   ]
+  },
+  "waits_over_1ms_sampled": 529826,
+  "waits_over_1ms_est": 8477216,
+  "slow_share_by_threshold_us": {
+   "1": 0.9999943378278398,
+   "10": 0.9999943378278398,
+   "1000": 0.9999886756556795,
+   "2": 0.9999943378278398,
+   "20": 0.9999943378278398,
+   "5": 0.9999943378278398
+  },
+  "starving_fraction": null,
+  "starving_samples": null,
+  "ops_ratio": 0.9752329350649255
+ },
+ "fairness": {
+  "quantum_bound_raw": 0.12,
+  "quantum_bound": 0.12,
+  "expected_quantum_jain": 0.12,
+  "slow_acquire_share": 0.9999943378278398,
+  "fairness_source": "sync"
+ },
+ "correctness": {
+  "ok": true,
+  "detail": "warmup: keys=1024 unwritten_keys=0 writes=218781 | throughput: keys=1024 unwritten_keys=0 writes=651508 | latency: keys=1024 unwritten_keys=0 writes=847826"
+ },
+ "gates": {
+  "g1_correct": true,
+  "g2_cpuset": true,
+  "g3_barrier": true,
+  "valid": true
+ },
+ "wall_s": 4.404721097
+}

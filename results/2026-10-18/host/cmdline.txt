@@ -1,0 +1,1 @@
+BOOT_IMAGE=/boot/vmlinuz-7.0.0-38-generic root=UUID=ef003a1b-fb20-4b20-8e6c-57bf18b178a3 ro quiet splash nosmt isolcpus=managed_irq,8-15 nohz_full=8-15 rcu_nocbs=8-15 irqaffinity=0-7 crashkernel=2G-4G:320M,4G-32G:512M,32G-64G:1024M,64G-128G:2048M,128G-:4096M
